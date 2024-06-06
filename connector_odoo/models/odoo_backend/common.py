@@ -152,9 +152,9 @@ class OdooBackend(models.Model):
 
     matching_product_product = fields.Boolean(string="Match product", default=True)
     matching_product_ch = fields.Selection(
-        [("default_code", "Reference"), ("barcode", "Barcode")],
+        [("name", "Name"), ("default_code", "Reference"), ("barcode", "Barcode")],
         string="Matching Field for product",
-        default="default_code",
+        default="name",
         required=True,
     )
     matching_customer = fields.Boolean(

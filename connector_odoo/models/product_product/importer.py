@@ -29,12 +29,12 @@ class ProductBatchImporter(Component):
             "search for odoo products %s returned %s items", filters, len(external_ids)
         )
         for external_id in external_ids:
-            # TODO : get the categ parent_left and change the priority
+            # TODO : get the categ parent_path and change the priority
             prod_id = self.backend_adapter.read(external_id)
             cat_id = self.backend_adapter.read(
                 prod_id.categ_id.id, model="product.category"
             )
-            job_options = {"priority": 15 + cat_id.parent_left or 0}
+            job_options = {"priority": 15 + int(cat_id.parent_path.split("/")[0]) or 0}
             self._import_record(external_id, job_options=job_options, force=force)
 
 

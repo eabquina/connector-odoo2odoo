@@ -36,7 +36,7 @@ class ProductPricelistBatchImporter(Component):
         for pricelist in updated_ids:
             pricelist_id = self.backend_adapter.read(pricelist)
             job_options = {
-                "priority": base_priority + pricelist_id.parent_left or 0,
+                "priority": base_priority + pricelist_id.parent_id or 0,
             }
             self._import_record(pricelist_id.id, job_options=job_options)
 

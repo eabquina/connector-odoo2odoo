@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+    <record id="view_odoo_backend_form_employee" model="ir.ui.view">
+        <field name="name">odoo.backend.form.hr.employee</field>
+        <field name="model">odoo.backend</field>
+        <field name="inherit_id" ref="connector_odoo.view_odoo_backend_form" />
+        <field name="arch" type="xml">
+            <data>
+                <xpath expr="//notebook" position="inside">
+                    <page string="HR Objects" name="hr">
+                        <group name="hr_objects">
+                            <group name="hr_employee" string="Employees">
+                                <group name="import_export_employee" string="Import/Export Config">
+                                    <field name="default_import_employee" />
+                                    <field name="default_export_employee" />
+                                    <field name="default_import_hr_employee_category" />
+                                    <field name="default_export_hr_employee_category" />
+                                    <field name="default_import_hr_job" />
+                                    <field name="default_export_hr_job" />
+                                </group>
+                                <group name="import_export_filters_employee" string="Import/Export Filters">
+                                    <field name="local_domain_filter_employee" />
+                                    <field name="external_domain_filter_employee" />
+                                </group>
+
+
+                                <group name="employee_import_operations" string="Import Operations">
+                                    <div invisible="default_import_employee != True">
+                                        <field  name="import_from_date_employee"
+                                                class="oe_inline"
+                                                nolabel="0" />
+                                    </div>
+                                    <div invisible="default_import_employee != True">
+                                        <button name="import_employee"
+                                                type="object"
+                                                string="Import Employee"
+                                                class="oe_highlight oe_inline"
+                                                help="Import Employee"
+                                                nolabel="1" />
+                                    </div>
+                                    <div invisible="default_import_hr_employee_category != True">
+                                        <button name="import_hr_employee_category"
+                                                type="object"
+                                                string="Import Employee Category"
+                                                class="oe_highlight oe_inline"
+                                                help="Import Employee Category"
+                                                nolabel="1" />
+                                    </div>
+                                    <div invisible="default_import_hr_job != True">
+                                        <button name="import_hr_job"
+                                                type="object"
+                                                string="Import Job Positions"
+                                                class="oe_highlight oe_inline"
+                                                help="Import Job Positions"
+                                                nolabel="1" />
+                                    </div>
+                                </group>
+                            </group>
+                        </group>
+                    </page>
+                </xpath>
+            </data>
+        </field>
+    </record>
+</odoo>

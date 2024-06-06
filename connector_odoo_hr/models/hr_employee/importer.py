@@ -69,190 +69,128 @@ class EmployeeImportMapper(Component):
     _inherit = "odoo.import.mapper"
     _apply_on = ["odoo.hr.employee"]
 
-    # TODO :     special_price => minimal_price
     direct = [
         ("name", "name"),
-        ("website", "website"),
-        ("lang", "lang"),
-        ("ref", "ref"),
-        ("comment", "comment"),
-        ("company_type", "company_type"),
-        ("zip", "zip"),
-        #("delivery_margin", "delivery_margin"),
+        ("active", "active"),
+        ("name", "name"),
+        ("avatar_128", "avatar_128"),
+        ("avatar_256", "avatar_256"),
+        ("avatar_512", "avatar_512"),
+        ("color", "color"),
+        ("job_title", "job_title"),
+        ("work_phone", "work_phone"),
+        ("work_email", "work_email"),
+        ("category_ids", "category_ids"),
+        ("subordinate_ids", "subordinate_ids"),
+        ("parent_id", "parent_id"),
+        ("coach_id", "coach_id"),
+        ("child_ids", "child_ids"),
+        ("job_id", "job_id"),
     ]
 
     @mapping
-    def category_id(self, record):
-        if record.category_id:
+    def category_ids(self, record):
+        if record.category_ids:
             binder = self.binder_for("odoo.hr.employee.category")
             return {
-                "category_id": [
+                "category_ids": [
                     (
                         6,
                         0,
                         [
-                            binder.to_internal(category_id, unwrap=True).id
-                            for category_id in record.category_id.ids
+                            binder.to_internal(category_ids, unwrap=True).id
+                            for category_ids in record.category_id.ids
                         ],
                     )
                 ]
             }
 
     @mapping
-    def street(self, record):
-        # hr.employee.address imported as dependency
-        # in other version of odoo, this field is a direct mapping
-        if self.backend_record.version != "6.1":
-            return {"street": record.street}
+    def subordinate_ids(self, record):
+        if record.subordinate_ids:
+            binder = self.binder_for("odoo.hr.employee.category")
+            return {
+                "subordinate_ids": [
+                    (
+                        6,
+                        0,
+                        [
+                            binder.to_internal(subordinate_ids, unwrap=True).id
+                            for subordinate_ids in record.subordinate_ids.ids
+                        ],
+                    )
+                ]
+            }
 
     @mapping
-    def street2(self, record):
-        # hr.employee.address imported as dependency
-        # in other version of odoo, this field is a direct mapping
-        if self.backend_record.version != "6.1":
-            return {"street2": record.street2}
+    def parent_id(self, record):
+        if record.parent_id:
+            binder = self.binder_for("odoo.hr.employee")
+            return {
+                "parent_id": [
+                    (
+                        6,
+                        0,
+                        [
+                            binder.to_internal(parent_id, unwrap=True).id
+                            for parent_id in record.parent_id.ids
+                        ],
+                    )
+                ]
+            }
+        
+    @mapping
+    def coach_id(self, record):
+        if record.coach_id:
+            binder = self.binder_for("odoo.hr.employee")
+            return {
+                "coach_id": [
+                    (
+                        6,
+                        0,
+                        [
+                            binder.to_internal(coach_id, unwrap=True).id
+                            for coach_id in record.coach_id.ids
+                        ],
+                    )
+                ]
+            }
 
     @mapping
-    def phone(self, record):
-        # hr.employee.address imported as dependency
-        # in other version of odoo, this field is a direct mapping
-        if self.backend_record.version != "6.1":
-            return {"phone": record.phone}
+    def child_ids(self, record):
+        if record.child_ids:
+            binder = self.binder_for("odoo.hr.employee")
+            return {
+                "child_ids": [
+                    (
+                        6,
+                        0,
+                        [
+                            binder.to_internal(child_ids, unwrap=True).id
+                            for child_ids in record.child_ids.ids
+                        ],
+                    )
+                ]
+            }
 
     @mapping
-    def mobile(self, record):
-        # hr.employee.address imported as dependency
-        # in other version of odoo, this field is a direct mapping
-        if self.backend_record.version != "6.1":
-            return {"mobile": record.mobile}
+    def job_id(self, record):
+        if record.job_id:
+            binder = self.binder_for("odoo.hr.job")
+            return {
+                "job_id": [
+                    (
+                        6,
+                        0,
+                        [
+                            binder.to_internal(job_id, unwrap=True).id
+                            for job_id in record.job_id.ids
+                        ],
+                    )
+                ]
+            }
 
-    @mapping
-    def city(self, record):
-        # hr.employee.address imported as dependency
-        # in other version of odoo, this field is a direct mapping
-        if self.backend_record.version != "6.1":
-            return {"city": record.city}
-
-    @mapping
-    def state_id(self, record):
-        # hr.employee.address imported as dependency
-        # in other version of odoo, this field is a direct mapping
-        if self.backend_record.version != "6.1":
-            return get_state_from_record(self, record)
-
-    @mapping
-    def customer(self, record):
-        if self.backend_record.version in (
-            "6.1",
-            "7.0",
-            "8.0",
-            "9.0",
-            "10.0",
-            "11.0",
-            "12.0",
-            "13.0",
-            "14.0",
-            "15.0",
-            "16.0",
-            "17.0",
-        ):
-            return {"customer_rank": record.customer}
-        else:
-            return {"customer_rank": record.customer_rank}
-
-    @mapping
-    def supplier(self, record):
-        if self.backend_record.version in (
-            "6.1",
-            "7.0",
-            "8.0",
-            "9.0",
-            "10.0",
-            "11.0",
-            "12.0",
-            "13.0",
-            "14.0",
-            "15.0",
-            "16.0",
-            "17.0",
-        ):
-            return {"supplier_rank": record.supplier}
-        else:
-            return {"supplier_rank": record.supplier_rank}
-
-    @mapping
-    def image(self, record):
-        if self.backend_record.version in (
-            "6.1",
-            "7.0",
-            "8.0",
-            "9.0",
-            "10.0",
-            "11.0",
-            "12.0",
-            "13.0",
-            "14.0",
-            "15.0",
-            "16.0",
-            "17.0",
-        ):
-            return {"image_1920": record.image if hasattr(record, "image") else False}
-        else:
-            return {"image_1920": record.image_1920}
-
-    @mapping
-    def user_id(self, record):
-        if record.user_id:
-            binder = self.binder_for("odoo.res.users")
-            user = binder.to_internal(record.user_id.id, unwrap=True)
-            return {"user_id": user.id}
-
-    @mapping
-    def property_account_payable(self, record):
-        if float(self.backend_record.version) >= 9.0:
-            property_account_payable_id = record.property_account_payable_id
-        else:
-            property_account_payable_id = record.property_account_payable
-
-        if property_account_payable_id:
-            binder = self.binder_for("odoo.account.account")
-            account = binder.to_internal(property_account_payable_id.id, unwrap=True)
-            if account:
-                return {"property_account_payable_id": account.id}
-
-    @mapping
-    def property_account_receivable(self, record):
-        if float(self.backend_record.version) >= 9.0:
-            property_account_receivable_id = record.property_account_receivable_id
-        else:
-            property_account_receivable_id = record.property_account_receivable
-
-        if property_account_receivable_id:
-            binder = self.binder_for("odoo.account.account")
-            account = binder.to_internal(property_account_receivable_id.id, unwrap=True)
-            if account:
-                return {"property_account_receivable_id": account.id}
-
-    # @mapping
-    # def property_purchase_currency_id(self, record):
-    #     property_purchase_currency_id = None
-    #     if hasattr(record, "property_purchase_currency_id"):
-    #         property_purchase_currency_id = record.property_purchase_currency_id
-    #     if not property_purchase_currency_id:
-    #         if (
-    #             record.property_product_pricelist_purchase
-    #             and record.property_product_pricelist_purchase.currency_id
-    #         ):
-    #             property_purchase_currency_id = (
-    #                 record.property_product_pricelist_purchase.currency_id
-    #             )
-    #     if property_purchase_currency_id:
-    #         binder = self.binder_for("odoo.res.currency")
-    #         currency = binder.to_internal(property_purchase_currency_id.id, unwrap=True)
-    #         if currency:
-    #             return {"property_purchase_currency_id": currency.id}
-
-
+    
 class EmployeeImporter(Component):
     _name = "odoo.hr.employee.importer"
     _inherit = "odoo.importer"
@@ -262,51 +200,51 @@ class EmployeeImporter(Component):
     def _import_dependencies(self, force=False):
         """Import the dependencies for the record"""
         # import parent
-        _logger.info("Importing dependencies for external ID %s", self.external_id)
+        #_logger.info("Importing dependencies for external ID %s", self.external_id)
         if self.odoo_record.parent_id:
-            _logger.info("Importing parent")
-            self._import_dependency(
-                self.odoo_record.parent_id.id, "odoo.hr.employee", force=force
-            )
+             _logger.info("Importing parent_id Manager")
+             self._import_dependency(
+                 self.odoo_record.parent_id.id, "odoo.hr.employee", force=force
+             )
 
-        if self.odoo_record.user_id:
-            _logger.info("Importing user")
-            self._import_dependency(
-                self.odoo_record.user_id.id, "odoo.res.users", force=force
-            )
+        # if self.odoo_record.user_id:
+        #     _logger.info("Importing user")
+        #     self._import_dependency(
+        #         self.odoo_record.user_id.id, "odoo.res.users", force=force
+        #     )
 
-        _logger.info("Importing categories")
-        for category_id in self.odoo_record.category_id:
-            self._import_dependency(
-                category_id.id, "odoo.hr.employee.category", force=force
-            )
+        # _logger.info("Importing categories")
+        # for category_id in self.odoo_record.category_id:
+        #     self._import_dependency(
+        #         category_id.id, "odoo.hr.employee.category", force=force
+        #     )
 
-        if self.odoo_record.property_account_payable:
-            _logger.info("Importing account payable")
-            self._import_dependency(
-                self.odoo_record.property_account_payable_id.id,
-                "odoo.account.account",
-                force=force,
-            )
+        # if self.odoo_record.property_account_payable:
+        #     _logger.info("Importing account payable")
+        #     self._import_dependency(
+        #         self.odoo_record.property_account_payable_id.id,
+        #         "odoo.account.account",
+        #         force=force,
+        #     )
 
-        if self.odoo_record.property_account_receivable:
-            _logger.info("Importing account receivable")
-            self._import_dependency(
-                self.odoo_record.property_account_receivable_id.id,
-                "odoo.account.account",
-                force=force,
-            )
+        # if self.odoo_record.property_account_receivable:
+        #     _logger.info("Importing account receivable")
+        #     self._import_dependency(
+        #         self.odoo_record.property_account_receivable_id.id,
+        #         "odoo.account.account",
+        #         force=force,
+        #     )
 
-        if (
-            hasattr(self.odoo_record, "property_purchase_currency_id")
-            and self.odoo_record.property_purchase_currency_id
-        ):
-            _logger.info("Importing supplier currency")
-            self._import_dependency(
-                self.odoo_record.property_purchase_currency_id.id,
-                "odoo.res.currency",
-                force=force,
-            )
+        # if (
+        #     hasattr(self.odoo_record, "property_purchase_currency_id")
+        #     and self.odoo_record.property_purchase_currency_id
+        # ):
+        #     _logger.info("Importing supplier currency")
+        #     self._import_dependency(
+        #         self.odoo_record.property_purchase_currency_id.id,
+        #         "odoo.res.currency",
+        #         force=force,
+        #     )
 
         # if (
         #     self.odoo_record.property_product_pricelist_purchase
@@ -320,7 +258,7 @@ class EmployeeImporter(Component):
         #     )
 
         result = super()._import_dependencies(force=force)
-        _logger.info("Dependencies imported for external ID %s", self.external_id)
+        #_logger.info("Dependencies imported for external ID %s", self.external_id)
         return result
 
     def _after_import(self, binding, force=False):

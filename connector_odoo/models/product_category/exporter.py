@@ -21,7 +21,7 @@ class BatchProductCategoryExporter(Component):
         for prod in prod_ids:
             job_options = {
                 "max_retries": 0,
-                "priority": 5 + prod.odoo_id.parent_left,
+                "priority": 5 + prod.odoo_id.parent_id,
             }
             self._export_record(prod, job_options=job_options)
 

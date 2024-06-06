@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+    
+    <record id="action_odoo_employee" model="ir.actions.act_window">
+        <field name="name">Odoo Employee</field>
+        <field name="res_model">odoo.hr.employee</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
+    <record id="action_odoo_hr_employee_category" model="ir.actions.act_window">
+        <field name="name">Odoo Employee Category</field>
+        <field name="res_model">odoo.hr.employee.category</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
+    <record id="action_odoo_hr_job" model="ir.actions.act_window">
+        <field name="name">Odoo Job Positions</field>
+        <field name="res_model">odoo.hr.job</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
+
+    <!--- Menu Items -->
+
+    <menuitem
+        id="menu_connector_odoo_hr_root"
+        name="Employees"
+        parent="connector.menu_connector_root"
+        sequence="20"
+    />
+
+    <menuitem
+        id="menu_odoo_external_employee"
+        name="External Employees"
+        parent="connector_odoo_hr.menu_connector_odoo_hr_root"
+        action="action_odoo_employee"
+    />
+
+    <menuitem
+        id="menu_odoo_external_hr_employee_category"
+        name="External Employee Category"
+        parent="connector_odoo_hr.menu_connector_odoo_hr_root"
+        action="action_odoo_hr_employee_category"
+    />
+
+    <menuitem
+        id="menu_odoo_external_hr_job"
+        name="External Job Positions"
+        parent="connector_odoo_hr.menu_connector_odoo_hr_root"
+        action="action_odoo_hr_job"
+    />
+
+</odoo>

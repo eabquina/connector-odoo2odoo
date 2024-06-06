@@ -32,13 +32,13 @@ class ProductTemplateBatchImporter(Component):
             len(external_ids),
         )
         for external_id in external_ids:
-            # TODO : get the parent_left of the category so that we change
+            # TODO : get the parent_id of the category so that we change
             #   the priority
             prod_id = self.backend_adapter.read(external_id)
             cat_id = self.backend_adapter.read(
                 prod_id.categ_id.id, model="product.category"
             )
-            job_options = {"priority": 15 + cat_id.parent_left or 0}
+            job_options = {"priority": 15 + int(cat_id.parent_path.split("/")[0]) or 0}
             self._import_record(external_id, job_options=job_options)
 
 
