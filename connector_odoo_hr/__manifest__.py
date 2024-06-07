@@ -19,6 +19,7 @@
         "security/ir.model.access.csv",
         "views/odoo_backend.xml",
         "views/odoo_connector_menus.xml",
+        "views/hr_attendance.xml",
         "views/hr_employee_category.xml",
         "views/hr_employee.xml",
         "views/hr_job.xml",

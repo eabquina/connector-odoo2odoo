@@ -17,6 +17,8 @@
                                     <field name="default_export_hr_employee_category" />
                                     <field name="default_import_hr_job" />
                                     <field name="default_export_hr_job" />
+                                    <field name="default_import_hr_attendance" />
+                                    <field name="default_export_hr_attendance" />
                                 </group>
                                 <group name="import_export_filters_employee" string="Import/Export Filters">
                                     <field name="local_domain_filter_employee" />
@@ -52,6 +54,14 @@
                                                 string="Import Job Positions"
                                                 class="oe_highlight oe_inline"
                                                 help="Import Job Positions"
+                                                nolabel="1" />
+                                    </div>
+                                    <div invisible="default_import_hr_attendance != True">
+                                        <button name="import_hr_attendance"
+                                                type="object"
+                                                string="Import Attendance"
+                                                class="oe_highlight oe_inline"
+                                                help="Import Attendance"
                                                 nolabel="1" />
                                     </div>
                                 </group>
