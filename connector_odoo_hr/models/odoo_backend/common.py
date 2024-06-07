@@ -19,6 +19,7 @@ class OdooBackend(models.Model):
     hr.employee.category
     hr.job
     hr.attendance
+    hr.leave
     """
 
     default_export_employee = fields.Boolean("Export Employee")
@@ -56,6 +57,15 @@ class OdooBackend(models.Model):
         help="""Filter in the Odoo Destination
         """,
     )
+    
+    default_export_hr_leave = fields.Boolean("Export HR Leave")
+    default_import_hr_leave = fields.Boolean("Import HR Leave")
+    local_domain_filter_hr_leave = fields.Char(default="[]")
+    external_domain_filter_hr_leave = fields.Char(
+        default="[]",
+        help="""Filter in the Odoo Destination
+        """,
+    )
 
     import_from_date_employee = fields.Datetime("Import Employee From Date")
 
@@ -81,4 +91,10 @@ class OdooBackend(models.Model):
         if not self.default_import_hr_attendance:
             return False
         self._import_from_date("odoo.hr.attendance", "import_from_date_employee")
+        return True
+    
+    def import_hr_leave(self):
+        if not self.default_import_hr_attendance:
+            return False
+        self._import_from_date("odoo.hr.leave", "import_from_date_employee")
         return True

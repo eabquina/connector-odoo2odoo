@@ -25,6 +25,13 @@
         <field name="view_mode">tree,form</field>
     </record>
 
+    <record id="action_odoo_hr_leave" model="ir.actions.act_window">
+        <field name="name">Odoo HR Leave</field>
+        <field name="res_model">odoo.hr.leave</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
+
 
     <!--- Menu Items -->
 
@@ -61,6 +68,13 @@
         name="External Attendance"
         parent="connector_odoo_hr.menu_connector_odoo_hr_root"
         action="action_odoo_hr_attendance"
+    />
+
+    <menuitem
+        id="menu_odoo_external_hr_leave"
+        name="External HR Leave"
+        parent="connector_odoo_hr.menu_connector_odoo_hr_root"
+        action="action_odoo_hr_leave"
     />
 
 </odoo>

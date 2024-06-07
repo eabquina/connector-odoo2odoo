@@ -6,22 +6,22 @@ from odoo.addons.connector.components.mapper import mapping, only_create
 _logger = logging.getLogger(__name__)
 
 
-class HrAttendanceBatchImporter(Component):
-    """Import the Odoo HR HrAttendance model.
+class AttendanceBatchImporter(Component):
+    """Import the Odoo HR Attendance model.
 
     For every partner category in the list, a delayed job is created.
     Import from a date
     """
 
-    _name = "odoo.hr.attendance.batch.importer"
+    _name = "odoo.hr.attendance.late.batch.importer"
     _inherit = "odoo.delayed.batch.importer"
-    _apply_on = ["odoo.hr.attendance"]
+    _apply_on = ["odoo.hr.attendance.late"]
 
 
-class HrAttendanceImportMapper(Component):
-    _name = "odoo.hr.attendance.import.mapper"
+class AttendanceImportMapper(Component):
+    _name = "odoo.hr.attendance.late.import.mapper"
     _inherit = "odoo.import.mapper"
-    _apply_on = ["odoo.hr.attendance"]
+    _apply_on = ["odoo.hr.attendance.late"]
 
     direct = [
         ("check_in", "check_in"),
@@ -56,11 +56,11 @@ class HrAttendanceImportMapper(Component):
         
 
 
-class HrAttendanceImporter(Component):
-    _name = "odoo.hr.attendance.importer"
+class AttendanceImporter(Component):
+    _name = "odoo.hr.attendance.late.importer"
     _inherit = "odoo.importer"
     _inherits = "AbstractModel"
-    _apply_on = ["odoo.hr.attendance"]
+    _apply_on = ["odoo.hr.attendance.late"]
     
     def _import_dependencies(self, force=False):
         """Import the dependencies for the record"""

@@ -13,26 +13,26 @@ _logger = logging.getLogger(__name__)
 
 
 class BatchHrAttendanceExporter(Component):
-    _name = "odoo.hr.attendance.batch.exporter"
+    _name = "odoo.hr.attendance.late.batch.exporter"
     _inherit = "odoo.delayed.batch.exporter"
-    _apply_on = ["odoo.hr.attendance"]
+    _apply_on = ["odoo.hr.attendance.late"]
     _usage = "batch.exporter"
 
     def run(self, filters=None, force=False):
         loc_filter = ast.literal_eval(self.backend_record.local_hr_attendance_domain_filter)
         filters += loc_filter
-        employee_ids = self.env["hr.attendance"].search(filters)
+        employee_ids = self.env["hr.attendance.late"].search(filters)
 
-        o_ids = self.env["odoo.hr.attendance"].search(
+        o_ids = self.env["odoo.hr.attendance.late"].search(
             [("backend_id", "=", self.backend_record.id)]
         )
-        o_employee_ids = self.env["hr.attendance"].search(
+        o_employee_ids = self.env["hr.attendance.late"].search(
             [("id", "in", [o.odoo_id.id for o in o_ids])]
         )
         to_bind = employee_ids - o_employee_ids
 
         for p in to_bind:
-            self.env["odoo.hr.attendance"].create(
+            self.env["odoo.hr.attendance.late"].create(
                 {
                     "odoo_id": p.id,
                     "external_id": 0,
@@ -40,7 +40,7 @@ class BatchHrAttendanceExporter(Component):
                 }
             )
 
-        bind_ids = self.env["odoo.hr.attendance"].search(
+        bind_ids = self.env["odoo.hr.attendance.late"].search(
             [
                 ("odoo_id", "in", [p.id for p in employee_ids]),
                 ("backend_id", "=", self.backend_record.id),
@@ -52,21 +52,21 @@ class BatchHrAttendanceExporter(Component):
 
 
 class OdooHrAttendanceExporter(Component):
-    _name = "odoo.hr.attendance.exporter"
+    _name = "odoo.hr.attendance.late.exporter"
     _inherit = "odoo.exporter"
-    _apply_on = ["odoo.hr.attendance"]
+    _apply_on = ["odoo.hr.attendance.late"]
 
     def _export_dependencies(self):
         if not self.binding.parent_id:
             return
         parents = self.binding.parent_id.bind_ids
-        parent = self.env["odoo.hr.attendance"]
+        parent = self.env["odoo.hr.attendance.late"]
 
         if parents:
             parent = parents.filtered(lambda c: c.backend_id == self.backend_record)
 
             hr_attendance = self.binder.to_external(parent, wrap=False)
-            self._export_dependency(hr_attendance, "odoo.hr.attendance")
+            self._export_dependency(hr_attendance, "odoo.hr.attendance.late")
 
     def _create_data(self, map_record, fields=None, **kwargs):
         """Get the data to pass to :py:meth:`_create`"""
@@ -75,9 +75,9 @@ class OdooHrAttendanceExporter(Component):
 
 
 class HrAttendanceExportMapper(Component):
-    _name = "odoo.hr.attendance.export.mapper"
+    _name = "odoo.hr.attendance.late.export.mapper"
     _inherit = "odoo.export.mapper"
-    _apply_on = ["odoo.hr.attendance"]
+    _apply_on = ["odoo.hr.attendance.late"]
 
     direct = [
         ("check_in", "check_in"),

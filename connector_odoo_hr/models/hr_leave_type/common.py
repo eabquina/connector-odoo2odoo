@@ -11,14 +11,14 @@ from odoo.addons.component.core import Component
 _logger = logging.getLogger(__name__)
 
 
-class OdooHrAttendance(models.Model):
-    _name = "odoo.hr.attendance"
+class OdooHrLeaveType(models.Model):
+    _name = "odoo.hr.leave.type"
     _inherit = "odoo.binding"
-    _inherits = {"hr.attendance": "odoo_id"}
-    _description = "External Odoo HrAttendance"
+    _inherits = {"hr.leave.type": "odoo_id"}
+    _description = "External Odoo HR Leave Type"
 
     odoo_id = fields.Many2one(
-        comodel_name="hr.attendance", string="HrAttendance", required=True, ondelete="cascade"
+        comodel_name="hr.leave.type", string="HR Leave Type", required=True, ondelete="cascade"
     )
 
     _sql_constraints = [
@@ -38,26 +38,26 @@ class OdooHrAttendance(models.Model):
             )
 
 
-class HrAttendance(models.Model):
-    _inherit = "hr.attendance"
+class HrLeaveType(models.Model):
+    _inherit = "hr.leave.type"
 
     bind_ids = fields.One2many(
-        comodel_name="odoo.hr.attendance",
+        comodel_name="odoo.hr.leave.type",
         inverse_name="odoo_id",
         string="Odoo Bindings",
     )
 
 
-class HrAttendanceAdapter(Component):
-    _name = "odoo.hr.attendance.adapter"
+class HrLeaveTypeAdapter(Component):
+    _name = "odoo.hr.leave.type.adapter"
     _inherit = "odoo.adapter"
-    _apply_on = "odoo.hr.attendance"
+    _apply_on = "odoo.hr.leave.type"
 
-    _odoo_model = "hr.attendance"
+    _odoo_model = "hr.leave.type"
 
 
-class HrAttendanceListener(Component):
-    _name = "hr.attendance.listener"
+class HrLeaveTypeListener(Component):
+    _name = "hr.leave.type.listener"
     _inherit = "base.connector.listener"
-    _apply_on = ["hr.attendance"]
+    _apply_on = ["hr.leave.type"]
     _usage = "event.listener"
