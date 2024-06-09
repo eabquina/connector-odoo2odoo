@@ -12,7 +12,7 @@
     "author": "Florent THOMAS (Mind And Go), Odoo Community Association (OCA), Tech Ops PH, EL Abquina",
     "application": False,
     "installable": True,
-    "external_dependencies": {"python": ["odoorpc", "OERPLib-py3"], "bin": []},
+    "external_dependencies": {"python": ["odoorpc"], "bin": []},
     "depends": [
         "base",
         "product",
