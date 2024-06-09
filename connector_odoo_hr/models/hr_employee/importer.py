@@ -45,6 +45,8 @@ class EmployeeImportMapper(Component):
         ("job_title", "job_title"),
         ("work_phone", "work_phone"),
         ("work_email", "work_email"),
+        ("lastname", "lastname"),
+        ("firstname", "firstname"),
     ]
 
     # @mapping
