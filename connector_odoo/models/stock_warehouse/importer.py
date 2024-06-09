@@ -42,24 +42,13 @@ class StockWarehouseImporter(Component):
     def _import_dependencies(self, force=False):
         """Import the dependencies for the record"""
         record = self.odoo_record
-        if self.backend_record.version == "6.1":
-            input_location_id = record.lot_input_id.id
-        else:
-            input_location_id = record.wh_input_stock_loc_id.id
+        input_location_id = record.wh_input_stock_loc_id.id
         self._import_dependency(input_location_id, "odoo.stock.location", force=force)
 
-        if self.backend_record.version == "6.1":
-            output_location_id = record.lot_output_id.id
-        else:
-            output_location_id = record.wh_output_stock_loc_id.id
+        output_location_id = record.wh_output_stock_loc_id.id
         self._import_dependency(output_location_id, "odoo.stock.location", force=force)
 
-        if self.backend_record.version == "6.1":
-            pack_location_id = (
-                record.lot_reception_id.id if record.lot_reception_id else False
-            )
-        else:
-            pack_location_id = (
+        pack_location_id = (
                 record.wh_pack_stock_loc_id.id if record.wh_pack_stock_loc_id else False
             )
         if pack_location_id:
@@ -77,28 +66,14 @@ class WarehouseMapper(Component):
 
     @mapping
     def code(self, record):
-        if self.backend_record.version == "6.1":
-            code = (
-                record.launching_sequence_id.prefix
-                if record.launching_sequence_id
-                else record.name.replace(" ", "_")
-            )
-        else:
-            code = record.code
+        code = record.code
         return {"code": code}
 
     @only_create
     @mapping
     def check_warehouse_exists(self, record):
         res = {}
-        if self.backend_record.version == "6.1":
-            code = (
-                record.launching_sequence_id.prefix
-                if record.launching_sequence_id
-                else record.name.replace(" ", "_")
-            )
-        else:
-            code = record.code
+        code = record.code
         warehouse_id = self.env["stock.warehouse"].search([("code", "=", code)])
         _logger.debug("Warehouse found for %s : %s" % (record, warehouse_id))
         if len(warehouse_id) == 1:
@@ -116,10 +91,7 @@ class WarehouseMapper(Component):
     @mapping
     def wh_input_stock_loc_id(self, record):
         binder = self.binder_for("odoo.stock.location")
-        if self.backend_record.version == "6.1":
-            location_id = binder.to_internal(record.lot_input_id.id)
-        else:
-            location_id = binder.to_internal(record.wh_input_stock_loc_id.id)
+        location_id = binder.to_internal(record.wh_input_stock_loc_id.id)
         if location_id:
             return {"wh_input_stock_loc_id": location_id.odoo_id.id}
         else:
@@ -128,10 +100,7 @@ class WarehouseMapper(Component):
     @mapping
     def wh_output_stock_loc_id(self, record):
         binder = self.binder_for("odoo.stock.location")
-        if self.backend_record.version == "6.1":
-            location_id = binder.to_internal(record.lot_output_id.id)
-        else:
-            location_id = binder.to_internal(record.wh_output_stock_loc_id.id)
+        location_id = binder.to_internal(record.wh_output_stock_loc_id.id)
         if location_id:
             return {"wh_output_stock_loc_id": location_id.odoo_id.id}
         else:
@@ -141,11 +110,7 @@ class WarehouseMapper(Component):
     def wh_pack_stock_loc_id(self, record):
         binder = self.binder_for("odoo.stock.location")
         location_id = False
-        if self.backend_record.version == "6.1":
-            if record.lot_reception_id:
-                location_id = binder.to_internal(record.lot_reception_id.id)
-        else:
-            if record.wh_pack_stock_loc_id:
+        if record.wh_pack_stock_loc_id:
                 location_id = binder.to_internal(record.wh_pack_stock_loc_id.id)
         return {
             "wh_pack_stock_loc_id": location_id.odoo_id.id if location_id else False

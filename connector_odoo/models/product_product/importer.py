@@ -137,7 +137,6 @@ class ProductImportMapper(Component):
     @mapping
     def image(self, record):
         if self.backend_record.version in (
-            "6.1",
             "7.0",
             "8.0",
             "9.0",

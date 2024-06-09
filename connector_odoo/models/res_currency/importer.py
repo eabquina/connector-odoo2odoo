@@ -64,8 +64,6 @@ class UomMapper(Component):
 
     @mapping
     def decimal_places(self, record):
-        if self.backend_record.version == "6.1":
-            return {"decimal_places": record.accuracy}
         return {"decimal_places": record.decimal_places}
 
 

@@ -63,7 +63,7 @@ class UserImportMapper(Component):
     # @mapping
     # def image(self, record):
     #     if (self.backend_record.version in (
-    #         '6.1', '7.0', '8.0', '9.0', '10.0', '11.0', '12.0')):
+    #         '7.0', '8.0', '9.0', '10.0', '11.0', '12.0')):
     #         return {"image_1920": record.image if hasattr(record, 'image') else False}
     #     else:
     #         return {"image_1920": record.image_1920}

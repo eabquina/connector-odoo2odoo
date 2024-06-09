@@ -138,14 +138,8 @@ class PurchaseOrderImportMapper(Component):
     @mapping
     def currency_id(self, record):
         currency_id = self.env.user.company_id.currency_id
-        if self.backend_record.version != "6.1" and record.currency_id:
-            binder = self.binder_for("odoo.res.currency")
-            currency_id = binder.to_internal(record.currency_id.id, unwrap=True)
-        elif self.backend_record.version == "6.1" and record.pricelist_id:
-            binder = self.binder_for("odoo.res.currency")
-            currency_id = binder.to_internal(
-                record.pricelist_id.currency_id.id, unwrap=True
-            )
+        binder = self.binder_for("odoo.res.currency")
+        currency_id = binder.to_internal(record.currency_id.id, unwrap=True)
         return {"currency_id": currency_id.id}
 
     @mapping
@@ -163,10 +157,6 @@ class PurchaseOrderImportMapper(Component):
 
     @mapping
     def picking_type_id(self, record):
-        if self.backend_record.version == "6.1":
-            return {
-                "picking_type_id": self.backend_record.default_purchase_picking_type_id.id
-            }
         binder = self.binder_for("odoo.stock.picking.type")
         picking_type_id = binder.to_internal(record.picking_type_id.id, unwrap=True)
         if picking_type_id:

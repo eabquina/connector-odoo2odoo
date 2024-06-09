@@ -15,10 +15,6 @@ try:
 except ImportError:
     _logger.debug("Cannot import 'odoorpc' Lib")
 
-try:
-    import oerplib
-except ImportError:
-    _logger.debug("Cannot import 'oerplib' Lib")
 
 
 class OdooLocation(object):
@@ -66,52 +62,31 @@ class OdooAPI(object):
         self._api = None
 
     def _api_login(self, api):
-        if self._location.version == "6.1":
-            try:
-                api.login(
-                    database=self._location.database,
-                    user=self._location.login,
-                    passwd=self._location.password,
-                )
-            except odoorpc.error.RPCError as e:
-                _logger.exception(e)
-                raise UserError(e) from e
-        else:
-            try:
-                api.login(
-                    db=self._location.database,
-                    login=self._location.login,
-                    password=self._location.password,
-                )
-            except odoorpc.error.RPCError as e:
-                _logger.exception(e)
-                raise UserError(e) from e
+        try:
+            api.login(
+                db=self._location.database,
+                login=self._location.login,
+                password=self._location.password,
+            )
+        except odoorpc.error.RPCError as e:
+            _logger.exception(e)
+            raise UserError(e) from e
 
     @property
     def api(self):
         if self._api is None:
-            if self._location.version == "6.1":
-                api = oerplib.OERP(
-                    server=self._location.hostname,
-                    port=self._location.port,
-                    protocol=self._location.protocol,
-                )
-            else:
-                api = odoorpc.ODOO(
-                    host=self._location.hostname,
-                    port=self._location.port,
-                    protocol=self._location.protocol,
-                )
+            api = odoorpc.ODOO(
+                host=self._location.hostname,
+                port=self._location.port,
+                protocol=self._location.protocol,
+            )
 
             self._api_login(api)
             self._api = api
 
             _logger.debug("Associated lang %s to location" % self._location.lang_id)
             if self._location.lang_id:
-                if self._location.version in ("6.1",):
-                    self._api.context["lang"] = self._location.lang_id
-                else:
-                    self._api.env.context["lang"] = self._location.lang_id
+                self._api.env.context["lang"] = self._location.lang_id
 
             _logger.info(
                 "Created a new Odoo API instance and logged In with context %s"
@@ -208,8 +183,6 @@ class GenericAdapter(AbstractComponent):
 
         model = (
             odoo_api.env[ext_model]
-            if odoo_api.version != "6.1"
-            else odoo_api.get(ext_model)
         )
         return model.search(
             filters if filters else [], offset=offset, limit=limit, order=order
@@ -243,8 +216,6 @@ class GenericAdapter(AbstractComponent):
             ) from e
         model = (
             odoo_api.env[ext_model]
-            if odoo_api.version != "6.1"
-            else odoo_api.get(ext_model)
         )
         if context:
             return model.with_context(**context).browse(arguments)
@@ -262,8 +233,6 @@ class GenericAdapter(AbstractComponent):
             ) from e
         model = (
             odoo_api.env[ext_model]
-            if odoo_api.version != "6.1"
-            else odoo_api.get(ext_model)
         )
         return model.create(data)
 
@@ -280,8 +249,6 @@ class GenericAdapter(AbstractComponent):
             ) from e
         model = (
             odoo_api.env[self._odoo_model]
-            if odoo_api.version != "6.1"
-            else odoo_api.get(self._odoo_model)
         )
         object_id = model.browse(arguments)
         # TODO: Check the write implementation of odoorpc

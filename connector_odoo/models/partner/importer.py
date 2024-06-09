@@ -103,50 +103,31 @@ class PartnerImportMapper(Component):
 
     @mapping
     def street(self, record):
-        # res.partner.address imported as dependency
-        # in other version of odoo, this field is a direct mapping
-        if self.backend_record.version != "6.1":
-            return {"street": record.street}
+        return {"street": record.street}
 
     @mapping
     def street2(self, record):
-        # res.partner.address imported as dependency
-        # in other version of odoo, this field is a direct mapping
-        if self.backend_record.version != "6.1":
-            return {"street2": record.street2}
+        return {"street2": record.street2}
 
     @mapping
     def phone(self, record):
-        # res.partner.address imported as dependency
-        # in other version of odoo, this field is a direct mapping
-        if self.backend_record.version != "6.1":
-            return {"phone": record.phone}
+        return {"phone": record.phone}
 
     @mapping
     def mobile(self, record):
-        # res.partner.address imported as dependency
-        # in other version of odoo, this field is a direct mapping
-        if self.backend_record.version != "6.1":
-            return {"mobile": record.mobile}
+        return {"mobile": record.mobile}
 
     @mapping
     def city(self, record):
-        # res.partner.address imported as dependency
-        # in other version of odoo, this field is a direct mapping
-        if self.backend_record.version != "6.1":
-            return {"city": record.city}
+        return {"city": record.city}
 
     @mapping
     def state_id(self, record):
-        # res.partner.address imported as dependency
-        # in other version of odoo, this field is a direct mapping
-        if self.backend_record.version != "6.1":
-            return get_state_from_record(self, record)
+        return get_state_from_record(self, record)
 
     @mapping
     def customer(self, record):
         if self.backend_record.version in (
-            "6.1",
             "7.0",
             "8.0",
             "9.0",
@@ -166,7 +147,6 @@ class PartnerImportMapper(Component):
     @mapping
     def supplier(self, record):
         if self.backend_record.version in (
-            "6.1",
             "7.0",
             "8.0",
             "9.0",
@@ -186,7 +166,6 @@ class PartnerImportMapper(Component):
     @mapping
     def image(self, record):
         if self.backend_record.version in (
-            "6.1",
             "7.0",
             "8.0",
             "9.0",
@@ -327,12 +306,4 @@ class PartnerImporter(Component):
         return result
 
     def _after_import(self, binding, force=False):
-        if self.backend_record.version == "6.1":
-            _logger.info(
-                "OpenERP detected, importing adresses for external ID %s",
-                self.external_id,
-            )
-            self.env["odoo.res.partner.address.disappeared"].with_delay().import_record(
-                self.backend_record, self.external_id
-            )
         return super()._after_import(binding, force)

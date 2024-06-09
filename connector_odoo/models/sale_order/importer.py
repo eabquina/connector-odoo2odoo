@@ -54,22 +54,11 @@ class SaleOrderImporter(Component):
         self._import_dependency(
             self.odoo_record.partner_id.id, "odoo.res.partner", force=force
         )
-        if self.backend_record.version != "6.1":
-            for partner_id in [
-                self.odoo_record.partner_shipping_id,
-                self.odoo_record.partner_invoice_id,
-            ]:
-                self._import_dependency(partner_id.id, "odoo.res.partner", force=force)
-        else:
-            for address_id in [
-                self.odoo_record.partner_shipping_id,
-                self.odoo_record.partner_invoice_id,
-            ]:
-                self._import_dependency(
-                    address_id.partner_id.id,
-                    "odoo.res.partner.address.disappeared",
-                    force=force,
-                )
+        for partner_id in [
+            self.odoo_record.partner_shipping_id,
+            self.odoo_record.partner_invoice_id,
+        ]:
+            self._import_dependency(partner_id.id, "odoo.res.partner", force=force)
 
     def _after_import(self, binding, force=False):
         res = super()._after_import(binding, force)
@@ -142,27 +131,15 @@ class SaleOrderImportMapper(Component):
     @mapping
     def partner_id(self, record):
         binder = self.binder_for("odoo.res.partner")
-        if self.backend_record.version != "6.1":
-            return {
-                "partner_id": binder.to_internal(record.partner_id.id, unwrap=True).id,
-                "partner_invoice_id": binder.to_internal(
-                    record.partner_invoice_id.id, unwrap=True
-                ).id,
-                "partner_shipping_id": binder.to_internal(
-                    record.partner_shipping_id.id, unwrap=True
-                ).id,
-            }
-        else:
-            binder_address = self.binder_for("odoo.res.partner.address.disappeared")
-            return {
-                "partner_id": binder.to_internal(record.partner_id.id, unwrap=True).id,
-                "partner_invoice_id": binder_address.to_internal(
-                    record.partner_invoice_id.id, unwrap=True
-                ).id,
-                "partner_shipping_id": binder_address.to_internal(
-                    record.partner_shipping_id.id, unwrap=True
-                ).id,
-            }
+        return {
+            "partner_id": binder.to_internal(record.partner_id.id, unwrap=True).id,
+            "partner_invoice_id": binder.to_internal(
+                record.partner_invoice_id.id, unwrap=True
+            ).id,
+            "partner_shipping_id": binder.to_internal(
+                record.partner_shipping_id.id, unwrap=True
+            ).id,
+        }
 
 
 class SaleOrderLineBatchImporter(Component):

@@ -42,8 +42,6 @@ class StockPickingImporter(Component):
     def _must_skip(
         self,
     ):
-        if self.backend_record.version != "6.1":
-            raise ValidationError(_("Only OpenERP 6.1 is supported"))
         have_lines = len(self.odoo_record["move_lines"]) > 0
         if not have_lines:
             return True
