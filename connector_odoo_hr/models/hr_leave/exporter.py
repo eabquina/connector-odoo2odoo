@@ -19,7 +19,7 @@ class BatchHrHrLeaveExporter(Component):
     _usage = "batch.exporter"
 
     def run(self, filters=None, force=False):
-        loc_filter = ast.literal_eval(self.backend_record.local_hr_attendance_domain_filter)
+        loc_filter = ast.literal_eval(self.backend_record.local_domain_filter_hr_leave)
         filters += loc_filter
         employee_ids = self.env["hr.leave"].search(filters)
 

@@ -45,12 +45,6 @@ class EmployeeImportMapper(Component):
         ("job_title", "job_title"),
         ("work_phone", "work_phone"),
         ("work_email", "work_email"),
-        #("category_ids", "category_ids"),
-        #("subordinate_ids", "subordinate_ids"),
-        #("parent_id", "parent_id"),
-        #("coach_id", "coach_id"),
-        #("child_ids", "child_ids"),
-        #("job_id", "job_id"),
     ]
 
     # @mapping

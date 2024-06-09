@@ -11,7 +11,7 @@ from odoo.addons.component.core import Component
 _logger = logging.getLogger(__name__)
 
 
-class OdooJobPosition(models.Model):
+class OdooHrDepartment(models.Model):
     _name = "odoo.hr.department"
     _inherit = "odoo.binding"
     _inherits = {"hr.department": "odoo_id"}
@@ -38,7 +38,7 @@ class OdooJobPosition(models.Model):
             )
 
 
-class JobPosition(models.Model):
+class HrDepartment(models.Model):
     _inherit = "hr.department"
 
     bind_ids = fields.One2many(
@@ -48,7 +48,7 @@ class JobPosition(models.Model):
     )
 
 
-class JobPositionAdapter(Component):
+class HrDepartmentAdapter(Component):
     _name = "odoo.hr.department.adapter"
     _inherit = "odoo.adapter"
     _apply_on = "odoo.hr.department"
@@ -56,7 +56,7 @@ class JobPositionAdapter(Component):
     _odoo_model = "hr.department"
 
 
-class JobPositionListener(Component):
+class HrDepartmentListener(Component):
     _name = "hr.department.listener"
     _inherit = "base.connector.listener"
     _apply_on = ["hr.department"]
