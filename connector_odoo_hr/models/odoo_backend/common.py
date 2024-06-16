@@ -37,6 +37,8 @@ class OdooBackend(models.Model):
         default="work_email",
     )
 
+    import_from_date_employee = fields.Datetime("Import Employee From Date")
+    export_from_date_employee = fields.Datetime("Export Employee From Date")
     default_export_employee = fields.Boolean("Export Employee")
     default_import_employee = fields.Boolean("Import Employee")
     local_domain_filter_employee = fields.Char(default="[]")
@@ -46,6 +48,8 @@ class OdooBackend(models.Model):
         """,
     )
 
+    import_from_date_employee_category = fields.Datetime("Import Employee Category From Date")
+    export_from_date_employee_category = fields.Datetime("Export Employee Category From Date")
     default_export_hr_employee_category = fields.Boolean("Export Employee Category")
     default_import_hr_employee_category = fields.Boolean("Import Employee Category")
     local_domain_filter_hr_employee_category = fields.Char(default="[]")
@@ -55,6 +59,8 @@ class OdooBackend(models.Model):
         """,
     )
 
+    import_from_date_hr_job = fields.Datetime("Import Job Positions From Date")
+    export_from_date_hr_job = fields.Datetime("Export Job Positions From Date")
     default_export_hr_job = fields.Boolean("Export Job Positions")
     default_import_hr_job = fields.Boolean("Import Job Positions")
     local_domain_filter_hr_job = fields.Char(default="[]")
@@ -64,6 +70,8 @@ class OdooBackend(models.Model):
         """,
     )
     
+    import_from_date_hr_attendance = fields.Datetime("Import Attendances From Date")
+    export_from_date_hr_attendance = fields.Datetime("Export Attendances From Date")
     default_export_hr_attendance = fields.Boolean("Export Attendances")
     default_import_hr_attendance = fields.Boolean("Import Attendances")
     local_domain_filter_hr_attendance = fields.Char(default="[]")
@@ -73,6 +81,8 @@ class OdooBackend(models.Model):
         """,
     )
     
+    import_from_date_hr_leave = fields.Datetime("Import HR Leave From Date")
+    export_from_date_hr_leave = fields.Datetime("Export HR Leave From Date")
     default_export_hr_leave = fields.Boolean("Export HR Leave")
     default_import_hr_leave = fields.Boolean("Import HR Leave")
     local_domain_filter_hr_leave = fields.Char(default="[]")
@@ -82,6 +92,8 @@ class OdooBackend(models.Model):
         """,
     )
     
+    import_from_date_hr_overtime = fields.Datetime("Import HR Overtime From Date")
+    export_from_date_hr_overtime = fields.Datetime("Export HR Overtime From Date")
     default_export_hr_overtime = fields.Boolean("Export HR Overtime")
     default_import_hr_overtime = fields.Boolean("Import HR Overtime")
     local_domain_filter_hr_overtime = fields.Char(default="[]")
@@ -91,6 +103,8 @@ class OdooBackend(models.Model):
         """,
     )
     
+    import_from_date_hr_attendance_late = fields.Datetime("Import HR Attendance Late From Date")
+    export_from_date_hr_attendance_late = fields.Datetime("Export HR Attendance Late From Date")
     default_export_hr_attendance_late = fields.Boolean("Export HR Attendance Late")
     default_import_hr_attendance_late = fields.Boolean("Import HR Attendance Late")
     local_domain_filter_hr_attendance_late = fields.Char(default="[]")
@@ -100,8 +114,9 @@ class OdooBackend(models.Model):
         """,
     )
 
-    import_from_date_employee = fields.Datetime("Import Employee From Date")
-    export_from_date_employee = fields.Datetime("Export Employee From Date")
+    
+    
+    
 
     
     """
@@ -116,37 +131,37 @@ class OdooBackend(models.Model):
     def import_hr_employee_category(self):
         if not self.default_import_hr_employee_category:
             return False
-        self._import_from_date("odoo.hr.employee.category", "import_from_date_employee")
+        self._import_from_date("odoo.hr.employee.category", "import_from_date_employee_category")
         return True
     
     def import_hr_job(self):
         if not self.default_import_hr_job:
             return False
-        self._import_from_date("odoo.hr.job", "import_from_date_employee")
+        self._import_from_date("odoo.hr.job", "import_from_date_hr_job")
         return True
     
     def import_hr_attendance(self):
         if not self.default_import_hr_attendance:
             return False
-        self._import_from_date("odoo.hr.attendance", "import_from_date_employee")
+        self._import_from_date("odoo.hr.attendance", "import_from_date_hr_attendance")
         return True
     
     def import_hr_leave(self):
         if not self.default_import_hr_leave:
             return False
-        self._import_from_date("odoo.hr.leave", "import_from_date_employee")
+        self._import_from_date("odoo.hr.leave", "import_from_date_hr_leave")
         return True
 
     def import_hr_overtime(self):
         if not self.default_import_hr_overtime:
             return False
-        self._import_from_date("odoo.hr.overtime", "import_from_date_employee")
+        self._import_from_date("odoo.hr.overtime", "import_from_date_hr_overtime")
         return True
     
     def import_hr_attendance_late(self):
         if not self.default_import_hr_attendance_late:
             return False
-        self._import_from_date("odoo.hr.attendance.late", "import_from_date_employee")
+        self._import_from_date("odoo.hr.attendance.late", "import_from_date_hr_attendance_late")
         return True
     
     
@@ -163,35 +178,35 @@ class OdooBackend(models.Model):
     def export_hr_employee_category(self):
         if not self.default_export_hr_employee_category:
             return False
-        self._export_from_date("odoo.hr.employee.category", "export_from_date_employee")
+        self._export_from_date("odoo.hr.employee.category", "export_from_date_employee_category")
         return True
     
     def export_hr_job(self):
         if not self.default_export_hr_job:
             return False
-        self._export_from_date("odoo.hr.job", "export_from_date_employee")
+        self._export_from_date("odoo.hr.job", "export_from_date_hr_job")
         return True
     
     def export_hr_attendance(self):
         if not self.default_export_hr_attendance:
             return False
-        self._export_from_date("odoo.hr.attendance", "export_from_date_employee")
+        self._export_from_date("odoo.hr.attendance", "export_from_date_hr_attendance")
         return True
     
     def export_hr_leave(self):
         if not self.default_export_hr_leave:
             return False
-        self._export_from_date("odoo.hr.leave", "export_from_date_employee")
+        self._export_from_date("odoo.hr.leave", "export_from_date_hr_leave")
         return True
     
     def export_hr_overtime(self):
         if not self.default_export_hr_leave:
             return False
-        self._export_from_date("odoo.hr.overtime", "export_from_date_employee")
+        self._export_from_date("odoo.hr.overtime", "export_from_date_hr_overtime")
         return True
     
     def export_hr_attendance_late(self):
         if not self.default_export_hr_attendance_late:
             return False
-        self._export_from_date("odoo.hr.attendance.late", "export_from_date_employee")
+        self._export_from_date("odoo.hr.attendance.late", "export_from_date_hr_attendance_late")
         return True

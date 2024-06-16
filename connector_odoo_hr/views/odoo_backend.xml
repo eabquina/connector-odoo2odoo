@@ -6,168 +6,210 @@
         <field name="inherit_id" ref="connector_odoo.view_odoo_backend_form" />
         <field name="arch" type="xml">
             <data>
-                <xpath expr="//notebook" position="inside">
-                    <page string="HR Objects" name="hr">
-                        <group name="hr_employee" string="Employees">
-                            <group name="import_export_employee" string="Import/Export Config">
-                                <field name="default_import_employee" />
-                                <field name="default_export_employee" />
-                                <field name="default_import_hr_employee_category" />
-                                <field name="default_export_hr_employee_category" />
-                                <field name="default_import_hr_job" />
-                                <field name="default_export_hr_job" />
-                                <field name="default_import_hr_attendance" />
-                                <field name="default_export_hr_attendance" />
-                                <field name="default_import_hr_leave" />
-                                <field name="default_export_hr_leave" />
-                                <field name="default_import_hr_overtime" />
-                                <field name="default_export_hr_overtime" />
-                                <field name="default_import_hr_attendance_late" />
-                                <field name="default_export_hr_attendance_late" />
+                <xpath expr="//notebook" position="inside">  
+                    <page string="Employees" name="employees">
+                    <group name="hr_employee">
+                        <group name="employees_import_export" string="Import/Export Config">          
+                            <group name="import_employees">
+                                <field name="default_import_employee"/>
+                                <field name="default_import_hr_employee_category"/>
+                                <field name="default_import_hr_job"/>
                             </group>
-                            <group name="import_export_filters_employee" string="Import/Export Filters">
-                                <field name="local_domain_filter_employee" />
-                                <field name="external_domain_filter_employee" />
-                                <div>
-                                    <label for="matching_employee" string="Match On" />
-                                    <field name="matching_employee" class="oe_inline" />
-                                    <field name="matching_employee_ch" />
-                                </div>
+                            <group name="export_employees">
+                                <field name="default_export_employee"/>
+                                <field name="default_export_hr_employee_category"/>
+                                <field name="default_export_hr_job"/>
                             </group>
+                        </group>
+                        <group name="employees_import_export_fiilters" string="Import/Export Filters">
+                            <field name="local_domain_filter_employee" />
+                            <field name="external_domain_filter_employee" />
+                            <field name="matching_employee"/>
+                            <field name="matching_employee_ch" />
+                            <!-- <div>
+                                <label for="matching_employee" string="Match On" />
+                                <field name="matching_employee" class="oe_inline" />
+                                <field name="matching_employee_ch" />
+                            </div> -->
+                        </group>
+                        <group name="employees_import_operations" string="Import Operations">
+                            <group name="employees_import_hr_employee">
+                                <field  name="import_from_date_employee"
+                                        nolabel="0" />
+                                <button name="import_employee"
+                                        type="object"
+                                        string="Import Employee"
+                                        class="oe_highlight"
+                                        help="Import Employee"
+                                        nolabel="1" />
+                            </group>
+                            <group name="employees_import_hr_employee_category">
+                                <field  name="import_from_date_employee_category"
+                                        nolabel="0" />
+                                <button name="import_hr_employee_category"
+                                        type="object"
+                                        string="Import Employee Category"
+                                        class="oe_highlight"
+                                        help="Import Employee Category"
+                                        nolabel="1" />
+                            </group>
+                            <group name="employees_import_hr_job">
+                                <field  name="import_from_date_hr_job"
+                                        class="oe_inline"
+                                        nolabel="0" />
+                                <button name="import_hr_job"
+                                        type="object"
+                                        string="Import Job Positions"
+                                        class="oe_highlight "
+                                        help="Import Job Positions"
+                                        nolabel="1" />
+                            </group>
+                        </group>
+                        <group name="employees_export_operations" string="Export Operations">
+                            <group name="employees_export_hr_employee">
+                                <field  name="export_from_date_employee"
+                                        nolabel="0" />
+                                <button name="export_employee"
+                                        type="object"
+                                        string="Export Employee"
+                                        class="oe_highlight"
+                                        help="Export Employee"
+                                        nolabel="1" />
+                            </group>
+                            <group name="employees_export_hr_employee_category">
+                                <field  name="export_from_date_employee_category"
+                                        nolabel="0" />
+                                <button name="export_hr_employee_category"
+                                        type="object"
+                                        string="Export Employee Category"
+                                        class="oe_highlight"
+                                        help="Export Employee Category"
+                                        nolabel="1" />
+                            </group>
+                            <group name="employees_export_hr_job">
+                                <field  name="export_from_date_hr_job"
+                                        class="oe_inline"
+                                        nolabel="0" />
+                                <button name="export_hr_job"
+                                        type="object"
+                                        string="Export Job Positions"
+                                        class="oe_highlight "
+                                        help="Export Job Positions"
+                                        nolabel="1" />
+                            </group>
+                        </group>
+                    </group>
+                    </page>
 
-
-                            <group name="employee_import_operations" string="Import Operations">
-                                <!--div invisible="default_import_employee != True"-->
-                                <div>
-                                    <field  name="import_from_date_employee"
-                                            class="oe_inline"
+                    <page string="Attendance" name="attendance">
+                        <group name="attendance">
+                            <group name="attendance_import_export" string="Import/Export Config">
+                                <group name="attendance_import">
+                                    <field name="default_import_hr_attendance" />
+                                    <field name="default_import_hr_leave" />
+                                    <field name="default_import_hr_overtime" />
+                                    <field name="default_import_hr_attendance_late" />
+                                </group>
+                                <group name="attendance_export">
+                                    <field name="default_export_hr_attendance" />
+                                    <field name="default_export_hr_leave" />
+                                    <field name="default_export_hr_overtime" />
+                                    <field name="default_export_hr_attendance_late" />
+                                </group>
+                            </group>
+                            <group name="attendance_import_export_filters" string="Import/Export Filters">
+                                <field name="local_domain_filter_hr_attendance" />
+                                <field name="external_domain_filter_hr_attendance" />
+                                <field name="matching_employee"/>
+                                <field name="matching_employee_ch" />
+                            </group>
+                            <group name="attendance_import_operations" string="Import Operations">
+                                <group name="attendance_import_hr_attendance">
+                                    <field  name="import_from_date_hr_attendance"
                                             nolabel="0" />
-                                </div>
-                                <div invisible="default_import_employee != True">
-                                    <button name="import_employee"
-                                            type="object"
-                                            string="Import Employee"
-                                            class="oe_highlight oe_inline"
-                                            help="Import Employee"
-                                            nolabel="1" />
-                                </div>
-                                <div invisible="default_import_hr_employee_category != True">
-                                    <button name="import_hr_employee_category"
-                                            type="object"
-                                            string="Import Employee Category"
-                                            class="oe_highlight oe_inline"
-                                            help="Import Employee Category"
-                                            nolabel="1" />
-                                </div>
-                                <div invisible="default_import_hr_job != True">
-                                    <button name="import_hr_job"
-                                            type="object"
-                                            string="Import Job Positions"
-                                            class="oe_highlight oe_inline"
-                                            help="Import Job Positions"
-                                            nolabel="1" />
-                                </div>
-                                <div invisible="default_import_hr_attendance != True">
                                     <button name="import_hr_attendance"
                                             type="object"
                                             string="Import Attendance"
-                                            class="oe_highlight oe_inline"
+                                            class="oe_highlight"
                                             help="Import Attendance"
                                             nolabel="1" />
-                                </div>
-                                <div invisible="default_import_hr_leave != True">
+                                </group>
+                                <group name="attendance_import_hr_leave">
+                                    <field  name="import_from_date_hr_leave"
+                                            nolabel="0" />
                                     <button name="import_hr_leave"
                                             type="object"
                                             string="Import HR Leave"
-                                            class="oe_highlight oe_inline"
+                                            class="oe_highlight"
                                             help="Import HR Leave"
                                             nolabel="1" />
-                                </div>
-                                <div invisible="default_import_hr_overtime != True">
+                                </group>
+                                <group name="attendance_import_hr_overtime">
+                                    <field  name="import_from_date_hr_overtime"
+                                            nolabel="0" />
                                     <button name="import_hr_overtime"
                                             type="object"
                                             string="Import HR Overtime"
-                                            class="oe_highlight oe_inline"
+                                            class="oe_highlight"
                                             help="Import HR Overtime"
                                             nolabel="1" />
-                                </div>
-                                <div invisible="default_import_hr_attendance_late != True">
+                                </group>
+                                <group name="attendance_import_hr_attendance_late">
+                                    <field  name="import_from_date_hr_attendance_late"
+                                            nolabel="0" />
                                     <button name="import_hr_attendance_late"
                                             type="object"
                                             string="Import HR Attendance Late"
-                                            class="oe_highlight oe_inline"
+                                            class="oe_highlight"
                                             help="Import HR Attendance Late"
                                             nolabel="1" />
-                                </div>
+                                </group>
                             </group>
-
-                            <group name="employee_export_operations" string="Export Operations">
-                                <!-- div invisible="False in [default_export_employee,default_export_hr_employee_category,default_export_hr_job,default_export_hr_leave] "-->
-                                <div>
-                                    <field  name="export_from_date_employee"
-                                            class="oe_inline"
+                            <group name="attendance_export_operations" string="Export Operations">
+                                <group name="attendance_export_hr_attendance">
+                                    <field  name="export_from_date_hr_attendance"
                                             nolabel="0" />
-                                </div>
-                                <separator></separator>
-                                <div invisible="default_export_employee != True">
-                                    <button name="export_employee"
-                                            type="object"
-                                            string="Export Employee"
-                                            class="oe_highlight oe_inline"
-                                            help="Export Employee"
-                                            nolabel="1" />
-                                </div>
-                                <div invisible="default_export_hr_employee_category != True">
-                                    <button name="export_hr_employee_category"
-                                            type="object"
-                                            string="Export Employee Category"
-                                            class="oe_highlight oe_inline"
-                                            help="Export Employee Category"
-                                            nolabel="1" />
-                                </div>
-                                <div invisible="default_export_hr_job != True">
-                                    <button name="export_hr_job"
-                                            type="object"
-                                            string="Export Job Positions"
-                                            class="oe_highlight oe_inline"
-                                            help="Export Job Positions"
-                                            nolabel="1" />
-                                </div>
-                                <div invisible="default_export_hr_attendance != True">
                                     <button name="export_hr_attendance"
                                             type="object"
                                             string="Export Attendance"
-                                            class="oe_highlight oe_inline"
+                                            class="oe_highlight"
                                             help="Export Attendance"
                                             nolabel="1" />
-                                </div>
-                                <div invisible="default_export_hr_leave != True">
+                                </group>
+                                <group name="attendance_export_hr_leave">
+                                    <field  name="export_from_date_hr_leave"
+                                            nolabel="0" />
                                     <button name="export_hr_leave"
                                             type="object"
                                             string="Export HR Leave"
-                                            class="oe_highlight oe_inline"
+                                            class="oe_highlight"
                                             help="Export HR Leave"
                                             nolabel="1" />
-                                </div>
-                                <div invisible="default_export_hr_overtime != True">
+                                </group>
+                                <group name="attendance_export_hr_overtime">
+                                    <field  name="export_from_date_hr_overtime"
+                                            nolabel="0" />
                                     <button name="export_hr_overtime"
                                             type="object"
                                             string="Export HR Overtime"
-                                            class="oe_highlight oe_inline"
+                                            class="oe_highlight"
                                             help="Export HR Overtime"
                                             nolabel="1" />
-                                </div>
-                                <div invisible="default_export_hr_attendance_late != True">
+                                </group>
+                                <group name="attendance_export_hr_attendance_late">
+                                    <field  name="export_from_date_hr_attendance_late"
+                                            nolabel="0" />
                                     <button name="export_hr_attendance_late"
                                             type="object"
                                             string="Export HR Attendance Late"
-                                            class="oe_highlight oe_inline"
+                                            class="oe_highlight"
                                             help="Export HR Attendance Late"
                                             nolabel="1" />
-                                </div>
+                                </group>
                             </group>
                         </group>
                     </page>
+
                 </xpath>
             </data>
         </field>
