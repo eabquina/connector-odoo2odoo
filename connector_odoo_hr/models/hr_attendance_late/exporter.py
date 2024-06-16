@@ -104,18 +104,12 @@ class HrAttendanceExportMapper(Component):
     ]
 
     def get_hr_attendance_match_field(self, record):
-        match_field = "email"
+        match_field = "display_name"
         filters = []
-
-        if self.backend_record.matching_customer:
-            match_field = self.backend_record.matching_customer_ch
 
         filters = ast.literal_eval(self.backend_record.external_hr_attendance_domain_filter)
         if record[match_field]:
             filters.append((match_field, "=", record[match_field]))
-        filters.append("|")
-        filters.append(("active", "=", False))
-        filters.append(("active", "=", True))
 
         adapter = self.component(usage="record.exporter").backend_adapter
         hr_attendance = adapter.search(filters)

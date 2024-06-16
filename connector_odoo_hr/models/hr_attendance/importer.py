@@ -1,3 +1,4 @@
+import ast
 import logging
 
 from odoo.addons.component.core import Component
@@ -46,6 +47,29 @@ class HrAttendanceImportMapper(Component):
         ("worked_hours", "worked_hours"),
         ("write_date", "write_date")
     ]
+    
+    @only_create
+    @mapping
+    def odoo_id(self, record):
+        binder = self.binder_for("odoo.hr.attendance")
+        if binder.to_internal(record.id, unwrap=True):
+            return { "odoo_id" : record.id }
+        
+        match_fields = ['employee_id', 'check_in', 'check_out']
+        filters = []
+
+        filters = ast.literal_eval(self.backend_record.external_domain_filter_hr_attendance)
+        for match_field in match_fields:
+            if record[match_field]:
+                if match_field in ['check_in', 'check_out']:
+                    filters.append((match_field, "=", str(record[match_field].strftime("%Y-%m-%d %H:%M:%S")) ))
+                if match_field in ['employee_id']:
+                    filters.append((match_field, "=", record[match_field].id))
+
+        attendance_ids = self.env["hr.attendance"].search(filters, limit=1)
+        if attendance_ids:
+            return {"odoo_id": attendance_ids[0].id}
+        return {}
     
     @mapping
     def employee_id(self, record):

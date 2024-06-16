@@ -82,10 +82,10 @@ class HrAttendanceExportMapper(Component):
     _apply_on = ["odoo.hr.attendance"]
 
     direct = [
-        #("check_in", "check_in"),
-        #("check_out", "check_out"),
-        #("create_date", "create_date"),
-        #("write_date", "write_date"),
+        ("check_in", "check_in"),
+        ("check_out", "check_out"),
+        ("create_date", "create_date"),
+        ("write_date", "write_date"),
         ("color", "color"),        
         ("display_name", "display_name"),
         ("in_browser", "in_browser"),

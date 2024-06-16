@@ -103,26 +103,23 @@ class HrHrLeaveExportMapper(Component):
         ("write_date", "write_date")
     ]
 
-    def get_hr_attendance_match_field(self, record):
-        match_field = "email"
+    def get_hr_attendance_by_match_field(self, record):
+        match_fields = ['employee_id', 'check_in', 'check_out']
         filters = []
 
-        if self.backend_record.matching_customer:
-            match_field = self.backend_record.matching_customer_ch
-
-        filters = ast.literal_eval(self.backend_record.external_hr_attendance_domain_filter)
-        if record[match_field]:
-            filters.append((match_field, "=", record[match_field]))
-        filters.append("|")
-        filters.append(("active", "=", False))
-        filters.append(("active", "=", True))
-
+        filters = ast.literal_eval(self.backend_record.external_domain_filter_hr_attendance)
+        for match_field in match_fields:
+            if record[match_field]:
+                if match_field in ['check_in', 'check_out']:
+                    filters.append((match_field, "=", str(record[match_field].strftime("%Y-%m-%d %H:%M:%S")) ))
+                if match_field in ['employee_id']:
+                    filters.append((match_field, "=", record[match_field].id))
         adapter = self.component(usage="record.exporter").backend_adapter
         hr_attendance = adapter.search(filters)
-        if len(hr_attendance) == 1:
+        if len(hr_attendance) > 0:
             return hr_attendance[0]
-
-        return False
+        else:
+            return False
 
     @mapping
     def employee_id(self, record):

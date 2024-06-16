@@ -12,7 +12,7 @@
                         groups="connector.group_connector_manager">
 
                         <group string="Odoo Bindings">
-                            <field name="bind_ids" readonly="1" nolabel="1" colspan="2"/>
+                            <field name="bind_ids" readonly="0" nolabel="1" colspan="2"/>
                         </group>
                         <group string="Odoo Bindings (Address Dissapeared)">
                             <!-- field

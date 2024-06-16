@@ -21,6 +21,20 @@ class OdooBackend(models.Model):
     hr.attendance
     hr.leave
     """
+    
+    matching_employee = fields.Boolean(
+        help="The selected fields will be matched to the ref field "
+        "of the employee. Please adapt your datas consequently.",
+        default=True,
+    )
+    matching_employee_ch = fields.Selection(
+        [
+            ("work_email", "Work Email"),
+            ("name", "Name"),
+        ],
+        string="Matching Field for Employee",
+        default="work_email",
+    )
 
     default_export_employee = fields.Boolean("Export Employee")
     default_import_employee = fields.Boolean("Import Employee")
