@@ -24,21 +24,6 @@ class HrLeaveImportMapper(Component):
     _apply_on = ["odoo.hr.leave"]
 
     direct = [
-        # ("holiday_type", "holiday_type"),
-        # ("request_date_from", "request_date_from"),
-        # ("request_date_from_period", "request_date_from_period"),
-        # ("request_date_to", "request_date_to"),
-        # ("request_hour_from", "request_hour_from"),
-        # ("request_hour_to", "request_hour_to"),
-        # ("request_unit_half", "request_unit_half"),
-        # ("request_unit_hours", "request_unit_hours"),
-        # ("name", "name"),
-        # ("private_name", "private_name"),
-        # ("notes", "notes"),
-        # ("display_name", "display_name"),
-        
-        
-        
         ("active_employee", "active_employee"),
         ("activity_date_deadline", "activity_date_deadline"),
         ("activity_exception_decoration", "activity_exception_decoration"),
@@ -50,7 +35,6 @@ class HrLeaveImportMapper(Component):
         ("can_cancel", "can_cancel"),
         ("can_reset", "can_reset"),
         ("color", "color"),
-        ("create_date", "create_date"),
         ("date_from", "date_from"),
         ("date_to", "date_to"),
         ("display_name", "display_name"),
@@ -65,15 +49,7 @@ class HrLeaveImportMapper(Component):
         ("leave_type_increases_duration", "leave_type_increases_duration"),
         ("leave_type_request_unit", "leave_type_request_unit"),
         ("leave_type_support_document", "leave_type_support_document"),
-        ("message_attachment_count", "message_attachment_count"),
-        ("message_has_error", "message_has_error"),
-        ("message_has_error_counter", "message_has_error_counter"),
-        ("message_has_sms_error", "message_has_sms_error"),
-        ("message_is_follower", "message_is_follower"),
-        ("message_needaction", "message_needaction"),
-        ("message_needaction_counter", "message_needaction_counter"),
         ("multi_employee", "multi_employee"),
-        ("my_activity_date_deadline", "my_activity_date_deadline"),
         ("name", "name"),
         ("notes", "notes"),
         ("number_of_days", "number_of_days"),
@@ -94,7 +70,6 @@ class HrLeaveImportMapper(Component):
         ("tz", "tz"),
         ("tz_mismatch", "tz_mismatch"),
         ("validation_type", "validation_type"),
-        ("write_date", "write_date"),
     ]
     
     @mapping
@@ -234,6 +209,5 @@ class HrLeaveImporter(Component):
     def _after_import(self, binding, force=False):
         res = super()._after_import(binding, force)
         self.odoo_record.state = binding.odoo_id.state
-        print(self.odoo_record.state, binding.odoo_id.state)
         return res
        
