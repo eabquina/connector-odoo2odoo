@@ -80,55 +80,48 @@ class HrAttendanceExportMapper(Component):
     _apply_on = ["odoo.hr.attendance.late"]
 
     direct = [
-        ("check_in", "check_in"),
-        ("check_out", "check_out"),
-        ("color", "color"),        
-        ("create_date", "create_date"),
+        ("date", "date"),
+        ("name", "name"),
         ("display_name", "display_name"),
-        ("in_browser", "in_browser"),
-        ("in_city", "in_city"),
-        ("in_country_name", "in_country_name"),
-        ("in_ip_address", "in_ip_address"),
-        ("in_latitude", "in_latitude"),
-        ("in_longitude", "in_longitude"),
-        ("out_mode", "out_mode"),
-        ("out_browser", "out_browser"),
-        ("out_city", "out_city"),
-        ("out_country_name", "out_country_name"),
-        ("out_ip_address", "out_ip_address"),
-        ("out_latitude", "out_latitude"),
-        ("out_longitude", "out_longitude"),
-        ("out_mode", "out_mode"),
-        ("worked_hours", "worked_hours"),
-        ("write_date", "write_date")
+        ("state", "state"),
+        ("late_minutes", "late_minutes"),
+        ("late_minutes_actual", "late_minutes_actual"),
+        ("penalty_amount", "penalty_amount"),
     ]
 
-    def get_hr_attendance_match_field(self, record):
-        match_field = "display_name"
+    @only_create
+    @mapping
+    def odoo_id(self, record):
+        binder = self.binder_for("odoo.hr.attendance.late")
+        if binder.to_internal(record.id, unwrap=True):
+            return { "odoo_id" : record.id }
+        
+        match_fields = ['employee_id', 'date',]
         filters = []
 
-        filters = ast.literal_eval(self.backend_record.external_hr_attendance_domain_filter)
-        if record[match_field]:
-            filters.append((match_field, "=", record[match_field]))
+        filters = ast.literal_eval(self.backend_record.external_domain_filter_hr_attendance)
+        for match_field in match_fields:
+            if record[match_field]:
+                if match_field in ['date']:
+                    filters.append((match_field, "=", str(record[match_field].strftime("%Y-%m-%d %H:%M:%S")) ))
+                if match_field in ['employee_id']:
+                    filters.append((match_field, "=", record[match_field].id))
 
-        adapter = self.component(usage="record.exporter").backend_adapter
-        hr_attendance = adapter.search(filters)
-        if len(hr_attendance) == 1:
-            return hr_attendance[0]
-
-        return False
-
+        attendance_ids = self.env["hr.attendance.late"].search(filters, limit=1)
+        if attendance_ids:
+            return {"odoo_id": attendance_ids[0].id}
+        return {}
+    
     @mapping
     def employee_id(self, record):
         if record.employee_id:
             binder = self.binder_for("odoo.hr.employee")
             employee_id = binder.to_internal(record.employee_id.id, unwrap=True)
             return {"employee_id": employee_id.id}
-
-    @only_create
+    
     @mapping
-    def odoo_id(self, record):
-        external_id = self.get_hr_attendance_by_match_field(record)
-
-        if external_id:
-            return {"external_id": external_id}
+    def attendance_id(self, record):
+        if record.attendance_id:
+            binder = self.binder_for("odoo.hr.attendance")
+            attendance_id = binder.to_internal(record.attendance_id.id, unwrap=True)
+            return {"attendance_id": attendance_id.id}

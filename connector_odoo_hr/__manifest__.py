@@ -23,6 +23,7 @@
         "views/hr_employee_category.xml",
         "views/hr_employee.xml",
         "views/hr_job.xml",
+        "views/hr_leave.xml",
     ],
     "demo": [],
     "qweb": [],

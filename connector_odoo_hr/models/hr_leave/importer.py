@@ -24,7 +24,65 @@ class HrLeaveImportMapper(Component):
     _apply_on = ["odoo.hr.leave"]
 
     direct = [
+        # ("holiday_type", "holiday_type"),
+        # ("request_date_from", "request_date_from"),
+        # ("request_date_from_period", "request_date_from_period"),
+        # ("request_date_to", "request_date_to"),
+        # ("request_hour_from", "request_hour_from"),
+        # ("request_hour_to", "request_hour_to"),
+        # ("request_unit_half", "request_unit_half"),
+        # ("request_unit_hours", "request_unit_hours"),
+        # ("name", "name"),
+        # ("private_name", "private_name"),
+        # ("notes", "notes"),
+        # ("display_name", "display_name"),
+        
+        
+        
+        ("active_employee", "active_employee"),
+        ("activity_date_deadline", "activity_date_deadline"),
+        ("activity_exception_decoration", "activity_exception_decoration"),
+        ("activity_exception_icon", "activity_exception_icon"),
+        ("activity_state", "activity_state"),
+        ("activity_summary", "activity_summary"),
+        ("activity_type_icon", "activity_type_icon"),
+        ("can_approve", "can_approve"),
+        ("can_cancel", "can_cancel"),
+        ("can_reset", "can_reset"),
+        ("color", "color"),
+        ("create_date", "create_date"),
+        ("date_from", "date_from"),
+        ("date_to", "date_to"),
+        ("display_name", "display_name"),
+        ("duration_display", "duration_display"),
+        ("has_mandatory_day", "has_mandatory_day"),
+        ("has_message", "has_message"),
         ("holiday_type", "holiday_type"),
+        ("is_hatched", "is_hatched"),
+        ("is_striked", "is_striked"),
+        ("is_user_only_responsible", "is_user_only_responsible"),
+        ("last_several_days", "last_several_days"),
+        ("leave_type_increases_duration", "leave_type_increases_duration"),
+        ("leave_type_request_unit", "leave_type_request_unit"),
+        ("leave_type_support_document", "leave_type_support_document"),
+        ("message_attachment_count", "message_attachment_count"),
+        ("message_has_error", "message_has_error"),
+        ("message_has_error_counter", "message_has_error_counter"),
+        ("message_has_sms_error", "message_has_sms_error"),
+        ("message_is_follower", "message_is_follower"),
+        ("message_needaction", "message_needaction"),
+        ("message_needaction_counter", "message_needaction_counter"),
+        ("multi_employee", "multi_employee"),
+        ("my_activity_date_deadline", "my_activity_date_deadline"),
+        ("name", "name"),
+        ("notes", "notes"),
+        ("number_of_days", "number_of_days"),
+        ("number_of_days_display", "number_of_days_display"),
+        ("number_of_hours", "number_of_hours"),
+        ("number_of_hours_display", "number_of_hours_display"),
+        ("number_of_hours_text", "number_of_hours_text"),
+        ("private_name", "private_name"),
+        ("report_note", "report_note"),
         ("request_date_from", "request_date_from"),
         ("request_date_from_period", "request_date_from_period"),
         ("request_date_to", "request_date_to"),
@@ -32,59 +90,11 @@ class HrLeaveImportMapper(Component):
         ("request_hour_to", "request_hour_to"),
         ("request_unit_half", "request_unit_half"),
         ("request_unit_hours", "request_unit_hours"),
-        ("name", "name"),
-        ("notes", "notes"),
-        #("state", "state"),
-        
-        # ("active", "active"),
-        # ("active_employee", "active_employee"),
-        # ("activity_date_deadline", "activity_date_deadline"),
-        # ("activity_exception_decoration", "activity_exception_decoration"),
-        # ("activity_exception_icon", "activity_exception_icon"),
-        # ("activity_state", "activity_state"),
-        # ("activity_summary", "activity_summary"),
-        # ("activity_type_icon", "activity_type_icon"),
-        # ("can_approve", "can_approve"),
-        # ("can_cancel", "can_cancel"),
-        # ("can_reset", "can_reset"),
-        # ("color", "color"),
-        # ("create_date", "create_date"),
-        # ("date_from", "date_from"),
-        # ("date_to", "date_to"),
-        # ("display_name", "display_name"),
-        # ("duration_display", "duration_display"),
-        # ("employee_overtime", "employee_overtime"),
-        # ("has_mandatory_day", "has_mandatory_day"),
-        # ("has_message", "has_message"),
-        # ("is_hatched", "is_hatched"),
-        # ("is_striked", "is_striked"),
-        # ("is_user_only_responsible", "is_user_only_responsible"),
-        # ("last_several_days", "last_several_days"),
-        # ("leave_type_increases_duration", "leave_type_increases_duration"),
-        # ("leave_type_request_unit", "leave_type_request_unit"),
-        # ("leave_type_support_document", "leave_type_support_document"),
-        # ("message_attachment_count", "message_attachment_count"),
-        # ("message_has_error", "message_has_error"),
-        # ("message_has_error_counter", "message_has_error_counter"),
-        # ("message_has_sms_error", "message_has_sms_error"),
-        # ("message_is_follower", "message_is_follower"),
-        # ("message_needaction", "message_needaction"),
-        # ("message_needaction_counter", "message_needaction_counter"),
-        # ("multi_employee", "multi_employee"),
-        # ("my_activity_date_deadline", "my_activity_date_deadline"),
-        # ("number_of_days", "number_of_days"),
-        # ("number_of_days_display", "number_of_days_display"),
-        # ("number_of_hours", "number_of_hours"),
-        # ("number_of_hours_display", "number_of_hours_display"),
-        # ("number_of_hours_text", "number_of_hours_text"),
-        # ("overtime_deductible", "overtime_deductible"),
-        # ("private_name", "private_name"),
-        # ("report_note", "report_note"),
-        # ("supported_attachment_ids_count", "supported_attachment_ids_count"),
-        # ("tz", "tz"),
-        # ("tz_mismatch", "tz_mismatch"),
-        # ("validation_type", "validation_type"),
-        # ("write_date", "write_date"),
+        ("supported_attachment_ids_count", "supported_attachment_ids_count"),
+        ("tz", "tz"),
+        ("tz_mismatch", "tz_mismatch"),
+        ("validation_type", "validation_type"),
+        ("write_date", "write_date"),
     ]
     
     @mapping
@@ -223,31 +233,7 @@ class HrLeaveImporter(Component):
             
     def _after_import(self, binding, force=False):
         res = super()._after_import(binding, force)
-        if self.backend_record.state:
-            hr_leave_model = self.env["odoo.hr.leave"]
-            hr_leave_model.import_reecord(self.backend_record, odoo_record.id, force=True) 
-            
-        else:
-            binding.with_delay()._set_state()
-            
-            delayed_line_ids = []
-            for line_id in self.odoo_record.move_lines:
-                stock_move_model = self.env["odoo.stock.move"]
-                if self.backend_record.delayed_import_lines:
-                    stock_move_model = stock_move_model.with_delay()
-                delayed_line_id = stock_move_model.import_record(
-                    self.backend_record, line_id.id, force=True
-                )
-                if self.backend_record.delayed_import_lines:
-                    delayed_line_id = self.env["queue.job"].search(
-                        [("uuid", "=", delayed_line_id.uuid)]
-                    )
-                    delayed_line_ids.append(delayed_line_id.id)
-            if self.backend_record.delayed_import_lines:
-                binding.queue_job_ids = [
-                    (6, 0, (delayed_line_ids + binding.queue_job_ids.ids))
-                ]
-            else:
-                binding.with_delay()._set_state()
+        self.odoo_record.state = binding.odoo_id.state
+        print(self.odoo_record.state, binding.odoo_id.state)
         return res
        
