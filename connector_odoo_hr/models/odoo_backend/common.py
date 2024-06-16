@@ -20,6 +20,7 @@ class OdooBackend(models.Model):
     hr.job
     hr.attendance
     hr.leave
+    hr.overtime
     """
     
     matching_employee = fields.Boolean(
@@ -80,6 +81,15 @@ class OdooBackend(models.Model):
         help="""Filter in the Odoo Destination
         """,
     )
+    
+    default_export_hr_overtime = fields.Boolean("Export HR Overtime")
+    default_import_hr_overtime = fields.Boolean("Import HR Overtime")
+    local_domain_filter_hr_overtime = fields.Char(default="[]")
+    external_domain_filter_hr_overtime = fields.Char(
+        default="[]",
+        help="""Filter in the Odoo Destination
+        """,
+    )
 
     import_from_date_employee = fields.Datetime("Import Employee From Date")
     export_from_date_employee = fields.Datetime("Export Employee From Date")
@@ -117,6 +127,12 @@ class OdooBackend(models.Model):
             return False
         self._import_from_date("odoo.hr.leave", "import_from_date_employee")
         return True
+
+    def import_hr_overtime(self):
+        if not self.import_hr_overtime:
+            return False
+        self._import_from_date("odoo.hr.overtime", "import_from_date_employee")
+        return True
     
     
     
@@ -151,4 +167,10 @@ class OdooBackend(models.Model):
         if not self.default_export_hr_leave:
             return False
         self._export_from_date("odoo.hr.leave", "export_from_date_employee")
+        return True
+    
+    def export_hr_overtime(self):
+        if not self.default_export_hr_leave:
+            return False
+        self._export_from_date("odoo.hr.overtime", "export_from_date_employee")
         return True

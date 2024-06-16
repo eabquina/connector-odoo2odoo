@@ -24,6 +24,7 @@
         "views/hr_employee.xml",
         "views/hr_job.xml",
         "views/hr_leave.xml",
+        "views/hr_overtime.xml",
     ],
     "demo": [],
     "qweb": [],
