@@ -22,6 +22,8 @@
                                 <field name="default_export_hr_leave" />
                                 <field name="default_import_hr_overtime" />
                                 <field name="default_export_hr_overtime" />
+                                <field name="default_import_hr_attendance_late" />
+                                <field name="default_export_hr_attendance_late" />
                             </group>
                             <group name="import_export_filters_employee" string="Import/Export Filters">
                                 <field name="local_domain_filter_employee" />
@@ -89,6 +91,14 @@
                                             help="Import HR Overtime"
                                             nolabel="1" />
                                 </div>
+                                <div invisible="default_import_hr_attendance_late != True">
+                                    <button name="import_hr_attendance_late"
+                                            type="object"
+                                            string="Import HR Attendance Late"
+                                            class="oe_highlight oe_inline"
+                                            help="Import HR Attendance Late"
+                                            nolabel="1" />
+                                </div>
                             </group>
 
                             <group name="employee_export_operations" string="Export Operations">
@@ -137,6 +147,22 @@
                                             string="Export HR Leave"
                                             class="oe_highlight oe_inline"
                                             help="Export HR Leave"
+                                            nolabel="1" />
+                                </div>
+                                <div invisible="default_export_hr_overtime != True">
+                                    <button name="export_hr_overtime"
+                                            type="object"
+                                            string="Export HR Overtime"
+                                            class="oe_highlight oe_inline"
+                                            help="Export HR Overtime"
+                                            nolabel="1" />
+                                </div>
+                                <div invisible="default_export_hr_attendance_late != True">
+                                    <button name="export_hr_attendance_late"
+                                            type="object"
+                                            string="Export HR Attendance Late"
+                                            class="oe_highlight oe_inline"
+                                            help="Export HR Attendance Late"
                                             nolabel="1" />
                                 </div>
                             </group>

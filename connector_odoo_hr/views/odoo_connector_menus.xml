@@ -31,7 +31,17 @@
         <field name="view_mode">tree,form</field>
     </record>
 
+    <record id="action_odoo_hr_overtime" model="ir.actions.act_window">
+        <field name="name">Odoo HR Overtime</field>
+        <field name="res_model">odoo.hr.overtime</field>
+        <field name="view_mode">tree,form</field>
+    </record>
 
+    <record id="action_odoo_hr_attendance_late" model="ir.actions.act_window">
+        <field name="name">Odoo HR Attendance Late</field>
+        <field name="res_model">odoo.hr.attendance.late</field>
+        <field name="view_mode">tree,form</field>
+    </record>
 
     <!--- Menu Items -->
 
@@ -75,6 +85,20 @@
         name="External HR Leave"
         parent="connector_odoo_hr.menu_connector_odoo_hr_root"
         action="action_odoo_hr_leave"
+    />
+
+    <menuitem
+        id="menu_odoo_external_hr_overtime"
+        name="External HR Overtime"
+        parent="connector_odoo_hr.menu_connector_odoo_hr_root"
+        action="action_odoo_hr_overtime"
+    />
+
+    <menuitem
+        id="menu_odoo_external_hr_attendance_late"
+        name="External HR Attendance Late"
+        parent="connector_odoo_hr.menu_connector_odoo_hr_root"
+        action="action_odoo_hr_attendance_late"
     />
 
 </odoo>

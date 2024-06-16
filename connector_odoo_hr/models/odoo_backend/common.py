@@ -90,6 +90,15 @@ class OdooBackend(models.Model):
         help="""Filter in the Odoo Destination
         """,
     )
+    
+    default_export_hr_attendance_late = fields.Boolean("Export HR Attendance Late")
+    default_import_hr_attendance_late = fields.Boolean("Import HR Attendance Late")
+    local_domain_filter_hr_attendance_late = fields.Char(default="[]")
+    external_domain_filter_hr_attendance_late = fields.Char(
+        default="[]",
+        help="""Filter in the Odoo Destination
+        """,
+    )
 
     import_from_date_employee = fields.Datetime("Import Employee From Date")
     export_from_date_employee = fields.Datetime("Export Employee From Date")
@@ -129,9 +138,15 @@ class OdooBackend(models.Model):
         return True
 
     def import_hr_overtime(self):
-        if not self.import_hr_overtime:
+        if not self.default_import_hr_overtime:
             return False
         self._import_from_date("odoo.hr.overtime", "import_from_date_employee")
+        return True
+    
+    def import_hr_attendance_late(self):
+        if not self.default_import_hr_attendance_late:
+            return False
+        self._import_from_date("odoo.hr.attendance.late", "import_from_date_employee")
         return True
     
     
@@ -173,4 +188,10 @@ class OdooBackend(models.Model):
         if not self.default_export_hr_leave:
             return False
         self._export_from_date("odoo.hr.overtime", "export_from_date_employee")
+        return True
+    
+    def export_hr_attendance_late(self):
+        if not self.default_export_hr_attendance_late:
+            return False
+        self._export_from_date("odoo.hr.attendance.late", "export_from_date_employee")
         return True

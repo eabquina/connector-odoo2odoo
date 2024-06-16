@@ -1,6 +1,7 @@
 
 from . import odoo_backend
 from . import hr_attendance
+from . import hr_attendance_late
 from . import hr_department
 from . import hr_employee
 from . import hr_employee_category
