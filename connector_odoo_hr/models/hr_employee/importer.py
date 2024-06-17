@@ -123,7 +123,6 @@ class EmployeeImportMapper(Component):
         ("write_date", "write_date"),
     ]
 
-    @only_create
     @mapping
     def odoo_id(self, record):
         binder = self.binder_for("odoo.hr.employee")

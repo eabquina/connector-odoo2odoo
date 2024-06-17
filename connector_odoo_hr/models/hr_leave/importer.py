@@ -78,6 +78,7 @@ class HrLeaveImportMapper(Component):
             binder = self.binder_for("odoo.hr.employee")
             employee_id = binder.to_internal(record.employee_id.id, unwrap=True)
             return {"employee_id": employee_id.id}
+    
     @mapping
     def department_id(self, record):
         if record.department_id:
@@ -208,6 +209,6 @@ class HrLeaveImporter(Component):
             
     def _after_import(self, binding, force=False):
         res = super()._after_import(binding, force)
-        self.odoo_record.state = binding.odoo_id.state
+        binding.odoo_id.state = self.odoo_record.state
         return res
        

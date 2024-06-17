@@ -118,10 +118,24 @@
                                 </group>
                             </group>
                             <group name="attendance_import_export_filters" string="Import/Export Filters">
-                                <field name="local_domain_filter_hr_attendance" />
-                                <field name="external_domain_filter_hr_attendance" />
-                                <field name="matching_employee"/>
-                                <field name="matching_employee_ch" />
+                                <group>
+                                    <field name="matching_employee"/>
+                                </group>
+                                <group>
+                                    <field name="matching_employee_ch" />
+                                </group>
+                                <group>
+                                    <field name="local_domain_filter_hr_attendance" />
+                                    <field name="local_domain_filter_hr_leave" />
+                                    <field name="local_domain_filter_hr_overtime" />
+                                    <field name="local_domain_filter_hr_attendance_late" />
+                                </group>
+                                <group>
+                                    <field name="external_domain_filter_hr_attendance" />
+                                    <field name="external_domain_filter_hr_leave" />
+                                    <field name="external_domain_filter_hr_overtime" />
+                                    <field name="external_domain_filter_hr_attendance_late" />
+                                </group>
                             </group>
                             <group name="attendance_import_operations" string="Import Operations">
                                 <group name="attendance_import_hr_attendance">
