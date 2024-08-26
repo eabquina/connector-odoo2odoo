@@ -141,107 +141,107 @@ class EmployeeImportMapper(Component):
             return {"odoo_id": employee_ids[0].id}
         return {}
 
-    @mapping
-    def category_ids(self, record):
-        if record.category_ids:
-            binder = self.binder_for("odoo.hr.employee.category")
-            return {
-                "category_ids": [
-                    (
-                        6,
-                        0,
-                        [
-                            binder.to_internal(category_ids, unwrap=True).id
-                            for category_ids in record.category_id.ids
-                        ],
-                    )
-                ]
-            }
+    # @mapping
+    # def category_ids(self, record):
+    #     if record.category_ids:
+    #         binder = self.binder_for("odoo.hr.employee.category")
+    #         return {
+    #             "category_ids": [
+    #                 (
+    #                     6,
+    #                     0,
+    #                     [
+    #                         binder.to_internal(category_ids, unwrap=True).id
+    #                         for category_ids in record.category_ids
+    #                     ],
+    #                 )
+    #             ]
+    #         }
 
-    @mapping
-    def subordinate_ids(self, record):
-        if record.subordinate_ids:
-            binder = self.binder_for("odoo.hr.employee.category")
-            return {
-                "subordinate_ids": [
-                    (
-                        6,
-                        0,
-                        [
-                            binder.to_internal(subordinate_ids, unwrap=True).id
-                            for subordinate_ids in record.subordinate_ids.ids
-                        ],
-                    )
-                ]
-            }
+    # @mapping
+    # def subordinate_ids(self, record):
+    #     if record.subordinate_ids:
+    #         binder = self.binder_for("odoo.hr.employee.category")
+    #         return {
+    #             "subordinate_ids": [
+    #                 (
+    #                     6,
+    #                     0,
+    #                     [
+    #                         binder.to_internal(subordinate_ids, unwrap=True).id
+    #                         for subordinate_ids in record.subordinate_ids.ids
+    #                     ],
+    #                 )
+    #             ]
+    #         }
 
-    @mapping
-    def parent_id(self, record):
-        if record.parent_id:
-            binder = self.binder_for("odoo.hr.employee")
-            return {
-                "parent_id": [
-                    (
-                        6,
-                        0,
-                        [
-                            binder.to_internal(parent_id, unwrap=True).id
-                            for parent_id in record.parent_id.ids
-                        ],
-                    )
-                ]
-            }
+    # @mapping
+    # def parent_id(self, record):
+    #     if record.parent_id:
+    #         binder = self.binder_for("odoo.hr.employee")
+    #         return {
+    #             "parent_id": [
+    #                 (
+    #                     6,
+    #                     0,
+    #                     [
+    #                         binder.to_internal(parent_id, unwrap=True).id
+    #                         for parent_id in record.parent_id.ids
+    #                     ],
+    #                 )
+    #             ]
+    #         }
         
-    @mapping
-    def coach_id(self, record):
-        if record.coach_id:
-            binder = self.binder_for("odoo.hr.employee")
-            return {
-                "coach_id": [
-                    (
-                        6,
-                        0,
-                        [
-                            binder.to_internal(coach_id, unwrap=True).id
-                            for coach_id in record.coach_id.ids
-                        ],
-                    )
-                ]
-            }
+    # @mapping
+    # def coach_id(self, record):
+    #     if record.coach_id:
+    #         binder = self.binder_for("odoo.hr.employee")
+    #         return {
+    #             "coach_id": [
+    #                 (
+    #                     6,
+    #                     0,
+    #                     [
+    #                         binder.to_internal(coach_id, unwrap=True).id
+    #                         for coach_id in record.coach_id.ids
+    #                     ],
+    #                 )
+    #             ]
+    #         }
 
-    @mapping
-    def child_ids(self, record):
-        if record.child_ids:
-            binder = self.binder_for("odoo.hr.employee")
-            return {
-                "child_ids": [
-                    (
-                        6,
-                        0,
-                        [
-                            binder.to_internal(child_ids, unwrap=True).id
-                            for child_ids in record.child_ids.ids
-                        ],
-                    )
-                ]
-            }
+    # @mapping
+    # def child_ids(self, record):
+    #     if record.child_ids:
+    #         binder = self.binder_for("odoo.hr.employee")
+    #         return {
+    #             "child_ids": [
+    #                 (
+    #                     6,
+    #                     0,
+    #                     [
+    #                         binder.to_internal(child_ids, unwrap=True).id
+    #                         for child_ids in record.child_ids.ids
+    #                     ],
+    #                 )
+    #             ]
+    #         }
 
-    @mapping
-    def job_id(self, record):
-        if record.job_id:
-            binder = self.binder_for("odoo.hr.job")
-            return {
-                "job_id": [
-                    (
-                        6,
-                        0,
-                        [
-                            binder.to_internal(job_id, unwrap=True).id
-                            for job_id in record.job_id.ids
-                        ],
-                    )
-                ]
-            }
+    # @mapping
+    # def job_id(self, record):
+    #     if record.job_id:
+    #         binder = self.binder_for("odoo.hr.job")
+    #         return {
+    #             "job_id": [
+    #                 (
+    #                     6,
+    #                     0,
+    #                     [
+    #                         binder.to_internal(job_id, unwrap=True).id
+    #                         for job_id in record.job_id.ids
+    #                     ],
+    #                 )
+    #             ]
+    #         }
 
     
 class EmployeeImporter(Component):
