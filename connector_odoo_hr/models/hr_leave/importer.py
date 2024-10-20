@@ -24,8 +24,6 @@ class HrLeaveImportMapper(Component):
     _apply_on = ["odoo.hr.leave"]
 
     direct = [
-        ("date_from", "date_from"),
-        ("date_to", "date_to"),
         ("active_employee", "active_employee"),
         ("activity_date_deadline", "activity_date_deadline"),
         ("activity_exception_decoration", "activity_exception_decoration"),
@@ -70,6 +68,8 @@ class HrLeaveImportMapper(Component):
         ("tz", "tz"),
         ("tz_mismatch", "tz_mismatch"),
         ("validation_type", "validation_type"),
+        ("date_from", "date_from"),
+        ("date_to", "date_to"),
     ]
     
     @mapping
