@@ -24,6 +24,7 @@ class HrLeaveImportMapper(Component):
     _apply_on = ["odoo.hr.leave"]
 
     direct = [
+        ("holiday_type", "holiday_type"),
         ("active_employee", "active_employee"),
         ("activity_date_deadline", "activity_date_deadline"),
         ("activity_exception_decoration", "activity_exception_decoration"),
@@ -39,7 +40,6 @@ class HrLeaveImportMapper(Component):
         ("duration_display", "duration_display"),
         ("has_mandatory_day", "has_mandatory_day"),
         ("has_message", "has_message"),
-        ("holiday_type", "holiday_type"),
         ("is_hatched", "is_hatched"),
         ("is_striked", "is_striked"),
         ("is_user_only_responsible", "is_user_only_responsible"),
@@ -57,13 +57,12 @@ class HrLeaveImportMapper(Component):
         ("number_of_hours_text", "number_of_hours_text"),
         ("private_name", "private_name"),
         ("report_note", "report_note"),
-        ("request_date_from", "request_date_from"),
+        ("request_unit_half", "request_unit_half"),
         ("request_date_from_period", "request_date_from_period"),
-        ("request_date_to", "request_date_to"),
         ("request_hour_from", "request_hour_from"),
         ("request_hour_to", "request_hour_to"),
-        ("request_unit_half", "request_unit_half"),
-        ("request_unit_hours", "request_unit_hours"),
+        ("request_date_from", "request_date_from"),
+        ("request_date_to", "request_date_to"),
         ("supported_attachment_ids_count", "supported_attachment_ids_count"),
         ("tz", "tz"),
         ("tz_mismatch", "tz_mismatch"),
@@ -208,11 +207,16 @@ class HrLeaveImporter(Component):
             )
             
     def _after_import(self, binding, force=False):
-        res = super()._after_import(binding, force)
+        res = super()._after_import(binding, force) 
         
         ## Approve the leave if it is in validate state
         if self.odoo_record.state == "validate":
             binding.odoo_id.action_approve()
+        ## Else any other state
+        else:
+            binding.odoo_id.state = self.odoo_record.state
+            
+        
         
         return res
        
