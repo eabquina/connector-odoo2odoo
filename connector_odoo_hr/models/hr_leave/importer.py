@@ -24,6 +24,8 @@ class HrLeaveImportMapper(Component):
     _apply_on = ["odoo.hr.leave"]
 
     direct = [
+        ("date_from", "date_from"),
+        ("date_to", "date_to"),
         ("active_employee", "active_employee"),
         ("activity_date_deadline", "activity_date_deadline"),
         ("activity_exception_decoration", "activity_exception_decoration"),
@@ -35,8 +37,6 @@ class HrLeaveImportMapper(Component):
         ("can_cancel", "can_cancel"),
         ("can_reset", "can_reset"),
         ("color", "color"),
-        ("date_from", "date_from"),
-        ("date_to", "date_to"),
         ("display_name", "display_name"),
         ("duration_display", "duration_display"),
         ("has_mandatory_day", "has_mandatory_day"),
@@ -53,8 +53,8 @@ class HrLeaveImportMapper(Component):
         ("name", "name"),
         ("notes", "notes"),
         ("number_of_days", "number_of_days"),
-        ("number_of_days_display", "number_of_days_display"),
         ("number_of_hours", "number_of_hours"),
+        ("number_of_days_display", "number_of_days_display"),
         ("number_of_hours_display", "number_of_hours_display"),
         ("number_of_hours_text", "number_of_hours_text"),
         ("private_name", "private_name"),
@@ -209,6 +209,10 @@ class HrLeaveImporter(Component):
             
     def _after_import(self, binding, force=False):
         res = super()._after_import(binding, force)
-        binding.odoo_id.state = self.odoo_record.state
+        
+        ## Approve the leave if it is in validate state
+        if binding.odoo_id.state == "validate":
+            self.odoo_record.action_approve()
+        
         return res
        
