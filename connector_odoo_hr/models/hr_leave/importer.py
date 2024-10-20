@@ -211,8 +211,8 @@ class HrLeaveImporter(Component):
         res = super()._after_import(binding, force)
         
         ## Approve the leave if it is in validate state
-        if binding.odoo_id.state == "validate":
-            self.odoo_record.action_approve()
+        if self.odoo_record.state == "validate":
+            binding.odoo_id.action_approve()
         
         return res
        
