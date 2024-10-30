@@ -211,6 +211,7 @@ class HrLeaveImporter(Component):
         
         ## Approve the leave if it is in validate state
         if self.odoo_record.state == "validate":
+            binding.odoo_id.state = "confirm"
             binding.odoo_id.action_approve()
         ## Else any other state
         else:
