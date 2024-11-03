@@ -84,30 +84,35 @@ class HrLeaveImportMapper(Component):
             binder = self.binder_for("odoo.hr.department")
             department_id = binder.to_internal(record.department_id.id, unwrap=True)
             return {"department_id": department_id.id}
+    
     @mapping
     def all_employee_ids(self, record):
         if record.all_employee_ids:
             binder = self.binder_for("odoo.hr.employee")
             all_employee_ids = binder.to_internal(record.all_employee_ids.id, unwrap=True)
             return {"all_employee_ids": all_employee_ids}
+    
     @mapping
     def employee_ids(self, record):
         if record.employee_ids:
             binder = self.binder_for("odoo.hr.employee")
             employee_ids = binder.to_internal(record.employee_ids.id, unwrap=True)
             return {"employee_ids": employee_ids}
+    
     @mapping
     def manager_id(self, record):
         if record.manager_id:
             binder = self.binder_for("odoo.hr.employee")
             manager_id = binder.to_internal(record.manager_id.id, unwrap=True)
             return {"manager_id": manager_id.id}
+    
     @mapping
     def first_approver_id(self, record):
         if record.first_approver_id:
             binder = self.binder_for("odoo.hr.employee")
             first_approver_id = binder.to_internal(record.first_approver_id.id, unwrap=True)
             return {"first_approver_id": first_approver_id.id}
+    
     @mapping
     def second_approver_id(self, record):
         if record.second_approver_id:
@@ -210,14 +215,10 @@ class HrLeaveImporter(Component):
         res = super()._after_import(binding, force) 
         
         ## Approve the leave if it is in validate state
-        if self.odoo_record.state == "validate":
-            binding.odoo_id.state = "confirm"
-            binding.odoo_id.action_approve()
-        ## Else any other state
-        else:
-            binding.odoo_id.state = self.odoo_record.state
-            
-        
-        
+        if self.odoo_record.state == "validate":    
+            ## Check if Leave Type ID requires approval via leave_validation_type
+            if self.odoo_record.holiday_status_id.leave_validation_type != 'no_validation':
+                binding.odoo_id.action_approve()
+                            
         return res
        
