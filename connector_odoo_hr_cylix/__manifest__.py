@@ -2,7 +2,7 @@
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
 
 {
-    "name": "Connector Odoo - HR",
+    "name": "Connector Odoo - HR Cylix",
     "summary": """
         Connector Module for Odoo To Odoo scenarios for HR""",
     "version": "17.0.1.0.0",
@@ -13,20 +13,14 @@
     "application": False,
     "installable": True,
     "depends": [
-        "connector_odoo",
-        "hr_attendance",
-        "hr_attendance_late",
-        "hr_holidays",
+        "connector_odoo_hr",
     ],
     "data": [
         "security/ir.model.access.csv",
         "views/odoo_backend.xml",
         "views/odoo_connector_menus.xml",
-        "views/hr_attendance.xml",
-        "views/hr_employee_category.xml",
-        "views/hr_employee.xml",
-        "views/hr_job.xml",
-        "views/hr_leave.xml",
+        "views/hr_attendance_late.xml",
+        "views/hr_overtime.xml",
     ],
     "demo": [],
     "qweb": [],

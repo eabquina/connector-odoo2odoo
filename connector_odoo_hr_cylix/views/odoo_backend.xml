@@ -107,10 +107,14 @@
                                 <group name="attendance_import">
                                     <field name="default_import_hr_attendance" />
                                     <field name="default_import_hr_leave" />
+                                    <field name="default_import_hr_overtime" />
+                                    <field name="default_import_hr_attendance_late" />
                                 </group>
                                 <group name="attendance_export">
                                     <field name="default_export_hr_attendance" />
                                     <field name="default_export_hr_leave" />
+                                    <field name="default_export_hr_overtime" />
+                                    <field name="default_export_hr_attendance_late" />
                                 </group>
                             </group>
                             <group name="attendance_import_export_filters" string="Import/Export Filters">
@@ -123,10 +127,14 @@
                                 <group>
                                     <field name="local_domain_filter_hr_attendance" />
                                     <field name="local_domain_filter_hr_leave" />
+                                    <field name="local_domain_filter_hr_overtime" />
+                                    <field name="local_domain_filter_hr_attendance_late" />
                                 </group>
                                 <group>
                                     <field name="external_domain_filter_hr_attendance" />
                                     <field name="external_domain_filter_hr_leave" />
+                                    <field name="external_domain_filter_hr_overtime" />
+                                    <field name="external_domain_filter_hr_attendance_late" />
                                 </group>
                             </group>
                             <group name="attendance_import_operations" string="Import Operations">
@@ -150,8 +158,26 @@
                                             help="Import HR Leave"
                                             nolabel="1" />
                                 </group>
-                                
-                                
+                                <group name="attendance_import_hr_overtime">
+                                    <field  name="import_from_date_hr_overtime"
+                                            nolabel="0" />
+                                    <button name="import_hr_overtime"
+                                            type="object"
+                                            string="Import HR Overtime"
+                                            class="oe_highlight"
+                                            help="Import HR Overtime"
+                                            nolabel="1" />
+                                </group>
+                                <group name="attendance_import_hr_attendance_late">
+                                    <field  name="import_from_date_hr_attendance_late"
+                                            nolabel="0" />
+                                    <button name="import_hr_attendance_late"
+                                            type="object"
+                                            string="Import HR Attendance Late"
+                                            class="oe_highlight"
+                                            help="Import HR Attendance Late"
+                                            nolabel="1" />
+                                </group>
                             </group>
                             <group name="attendance_export_operations" string="Export Operations">
                                 <group name="attendance_export_hr_attendance">
@@ -172,6 +198,26 @@
                                             string="Export HR Leave"
                                             class="oe_highlight"
                                             help="Export HR Leave"
+                                            nolabel="1" />
+                                </group>
+                                <group name="attendance_export_hr_overtime">
+                                    <field  name="export_from_date_hr_overtime"
+                                            nolabel="0" />
+                                    <button name="export_hr_overtime"
+                                            type="object"
+                                            string="Export HR Overtime"
+                                            class="oe_highlight"
+                                            help="Export HR Overtime"
+                                            nolabel="1" />
+                                </group>
+                                <group name="attendance_export_hr_attendance_late">
+                                    <field  name="export_from_date_hr_attendance_late"
+                                            nolabel="0" />
+                                    <button name="export_hr_attendance_late"
+                                            type="object"
+                                            string="Export HR Attendance Late"
+                                            class="oe_highlight"
+                                            help="Export HR Attendance Late"
                                             nolabel="1" />
                                 </group>
                             </group>
