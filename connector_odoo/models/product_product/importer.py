@@ -124,15 +124,13 @@ class ProductImportMapper(Component):
         return {"categ_id": cat.id}
 
     @mapping
-    def is_published(self, record):
-        is_published = False
+    def website_published(self, record):
+        website_published = False
         if hasattr(record, "website_published"):
-            is_published = record["website_published"]
-        elif hasattr(record, "is_published"):
-            is_published = record["is_published"]
+            website_published = record["website_published"]
         else:
             return {}
-        return {"is_published": is_published}
+        return {"website_published": website_published}
 
     @mapping
     def image(self, record):
