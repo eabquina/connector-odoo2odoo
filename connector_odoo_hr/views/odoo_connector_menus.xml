@@ -31,6 +31,18 @@
         <field name="view_mode">tree,form</field>
     </record>
 
+    <record id="action_odoo_hr_expense" model="ir.actions.act_window">
+        <field name="name">Odoo Expense</field>
+        <field name="res_model">odoo.hr.expense</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
+    <record id="action_odoo_hr_expense_sheet" model="ir.actions.act_window">
+        <field name="name">Odoo Expense Report</field>
+        <field name="res_model">odoo.hr.expense.sheet</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
     <!--- Menu Items -->
 
     <menuitem
@@ -75,5 +87,26 @@
         action="action_odoo_hr_leave"
     />
 
+    <!-- Expenses -->
+     <menuitem
+        id="menu_connector_odoo_hr_expense_root"
+        name="Expenses"
+        parent="connector.menu_connector_root"
+        sequence="20"
+    />
+
+    <menuitem
+        id="menu_odoo_external_hr_expense"
+        name="External Expense"
+        parent="connector_odoo_hr.menu_connector_odoo_hr_expense_root"
+        action="action_odoo_hr_expense"
+    />
+
+    <menuitem
+        id="menu_odoo_external_hr_expense_sheet"
+        name="External Expense Report"
+        parent="connector_odoo_hr.menu_connector_odoo_hr_expense_root"
+        action="action_odoo_hr_expense_sheet"
+    />
 
 </odoo>

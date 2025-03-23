@@ -20,6 +20,8 @@ class OdooBackend(models.Model):
     hr.job
     hr.attendance
     hr.leave
+    hr.expense
+    hr.expense.sheet
     """
     
     matching_employee = fields.Boolean(
@@ -91,7 +93,27 @@ class OdooBackend(models.Model):
         """,
     )
         
-    
+    import_from_date_hr_expense = fields.Datetime("Import HR Expense From Date")
+    export_from_date_hr_expense = fields.Datetime("Export HR Expense From Date")
+    default_export_hr_expense = fields.Boolean("Export HR Expense")
+    default_import_hr_expense = fields.Boolean("Import HR Expense")
+    local_domain_filter_hr_expense = fields.Char(default="[]")
+    external_domain_filter_hr_expense = fields.Char(
+        default="[]",
+        help="""Filter in the Odoo Destination
+        """,
+    )
+
+    import_from_date_hr_expense_sheet = fields.Datetime("Import HR Expense Report From Date")
+    export_from_date_hr_expense_sheet = fields.Datetime("Export HR Expense Report From Date")
+    default_export_hr_expense_sheet = fields.Boolean("Export HR Expense Report")
+    default_import_hr_expense_sheet = fields.Boolean("Import HR Expense Report")
+    local_domain_filter_hr_expense_sheet = fields.Char(default="[]")
+    external_domain_filter_hr_expense_sheet = fields.Char(
+        default="[]",
+        help="""Filter in the Odoo Destination
+        """,
+    )
     
 
     
@@ -128,6 +150,17 @@ class OdooBackend(models.Model):
         self._import_from_date("odoo.hr.leave", "import_from_date_hr_leave")
         return True
     
+    def import_hr_expense(self):
+        if not self.default_import_hr_expense:
+            return False
+        self._import_from_date("odoo.hr.expense", "import_from_date_hr_expense")
+        return True
+    
+    def import_hr_expense_sheet(self):
+        if not self.default_import_hr_expense_sheet:
+            return False
+        self._import_from_date("odoo.hr.expense.sheet", "import_from_date_hr_expense_sheet")
+        return True
     
     """
         Export Actions
@@ -160,4 +193,16 @@ class OdooBackend(models.Model):
         if not self.default_export_hr_leave:
             return False
         self._export_from_date("odoo.hr.leave", "export_from_date_hr_leave")
+        return True
+    
+    def export_hr_expense(self):
+        if not self.default_export_hr_expense:
+            return False
+        self._export_from_date("odoo.hr.expense", "export_from_date_hr_expense")
+        return True
+
+    def export_hr_expense_sheet(self):
+        if not self.default_export_hr_expense_sheet:
+            return False
+        self._export_from_date("odoo.hr.expense.sheet", "export_from_date_hr_expense_sheet")
         return True

@@ -178,6 +178,48 @@
                         </group>
                     </page>
 
+                    <page string="Expenses" name="expenses">
+                    <group name="hr_expense">
+                        <group name="hr_expense_import_export" string="Import/Export Config">          
+                            <group name="import_expenses">
+                                <field name="default_import_hr_expense"/>
+                                <field name="default_import_hr_expense_sheet"/>
+                            </group>
+                            <group name="export_hr_expense">
+                                <field name="default_export_hr_expense"/>
+                                <field name="default_export_hr_expense_sheet"/>
+                            </group>
+                        </group>
+                        <group name="hr_expense_import_export_filters" string="Import/Export Filters">
+                            <field name="local_domain_filter_hr_expense" />
+                            <field name="external_domain_filter_hr_expense" />
+                        </group>
+                        <group name="hr_expense_import_operations" string="Import Operations">
+                            <group name="hr_expense_import_hr_expense">
+                                <field  name="import_from_date_hr_expense"
+                                        nolabel="0" />
+                                <button name="import_hr_expense"
+                                        type="object"
+                                        string="Import Expense"
+                                        class="oe_highlight"
+                                        help="Import Expense"
+                                        nolabel="1" />
+                            </group>
+                            <group name="hr_expense_import_hr_expense_sheet">
+                                <field  name="import_from_date_hr_expense_sheet"
+                                        nolabel="0" />
+                                <button name="import_hr_expense_sheet"
+                                        type="object"
+                                        string="Import Expense Reports"
+                                        class="oe_highlight"
+                                        help="Import Expense Reports"
+                                        nolabel="1" />
+                            </group>
+                            
+                        </group>
+                    </group>
+                    </page>
+                    
                 </xpath>
             </data>
         </field>

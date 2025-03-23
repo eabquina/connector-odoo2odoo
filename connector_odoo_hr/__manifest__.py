@@ -25,6 +25,8 @@
         "views/hr_attendance.xml",
         "views/hr_employee_category.xml",
         "views/hr_employee.xml",
+        "views/hr_expense.xml",
+        "views/hr_expense_sheet.xml",
         "views/hr_job.xml",
         "views/hr_leave.xml",
     ],
