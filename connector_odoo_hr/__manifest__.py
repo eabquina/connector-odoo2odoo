@@ -17,6 +17,7 @@
         "hr_attendance",
         "hr_attendance_late",
         "hr_holidays",
+        "hr_expense",
     ],
     "data": [
         "security/ir.model.access.csv",
