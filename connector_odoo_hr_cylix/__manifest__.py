@@ -14,6 +14,7 @@
     "installable": True,
     "depends": [
         "connector_odoo_hr",
+        "ohrms_overtime_ent",
     ],
     "data": [
         "security/ir.model.access.csv",

@@ -18,7 +18,7 @@ class OdooHrExpense(models.Model):
     _description = "External Odoo HrExpense"
 
     odoo_id = fields.Many2one(
-        comodel_name="hr.expense", string="HrExpense", required=True, ondelete="cascade"
+        comodel_name="hr.expense", string="Hr Expense", required=True, ondelete="cascade"
     )
 
     _sql_constraints = [
