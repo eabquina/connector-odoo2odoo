@@ -49,14 +49,14 @@ class UomMapper(Component):
 
     @mapping
     def category_id(self, record):
-        category_id = record["category_id"]
+        category_id = record.category_id
         return {"category_id": category_id.id}
 
     @only_create
     @mapping
     def check_uom_exists(self, record):
         res = {}
-        category_name = record["category_id"].name
+        category_name = record.category_id.name
         lang = (
             self.backend_record.default_lang_id.code
             or self.env.user.lang
@@ -92,10 +92,10 @@ class UomMapper(Component):
             else:    
                 raise ValidationError(
                     _(
-                        "Unable to find Reference UOM with \
+                        "Unable to find Reference UOM with format {format}\
                     for category {category_name}. \
-                    It is possible that the UOM {record.name} was renamed."
-                    ).format(category_name, record.name)
+                    It is possible that the UOM {name} was renamed."
+                    )
                 )
         return res
 
