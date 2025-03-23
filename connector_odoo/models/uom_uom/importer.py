@@ -89,18 +89,13 @@ class UomMapper(Component):
             )
             if len(local_uom_id) == 1:
                 res.update({"odoo_id": local_uom_id.id})
-            else:
-                if "factor" in record:
-                    record_factor = record.factor
-                else:
-                    record_factor = None
-                    
+            else:    
                 raise ValidationError(
                     _(
-                        "Unable to find Reference UOM with factor {factor} \
+                        "Unable to find Reference UOM with \
                     for category {category_name}. \
                     It is possible that the UOM {record.name} was renamed."
-                    ).format(record_factor, category_name, record.name)
+                    ).format(category_name, record.name)
                 )
         return res
 
