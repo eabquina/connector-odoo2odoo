@@ -89,14 +89,30 @@ class UomMapper(Component):
             )
             if len(local_uom_id) == 1:
                 res.update({"odoo_id": local_uom_id.id})
-            else:    
-                raise ValidationError(
-                    _(
-                        "Unable to find Reference UOM with format {format}\
-                    for category {category_name}. \
-                    It is possible that the UOM {name} was renamed."
-                    )
-                )
+            else:   
+                res.update({"odoo_id": 1}) 
+                # raise ValidationError(
+                #     _(
+                #         "Unable to find Reference UOM with format {format}\
+                #     for category {category_name}. \
+                #     It is possible that the UOM {name} was renamed. \
+                #     Defaulting to the first UOM found in the category. \
+                #     Please check the UOM in Odoo. \
+                #     If you want to import the UOM, please rename it in Odoo \
+                #     and reimport it. \
+                #     If you want to skip it, please set the UOM as not reference \
+                #     in the Odoo backend. \
+                #     UOM found : {local_uom_id} \
+                #     UOM to import : {record} \
+                #     UOM to import name : {name} \
+                #     UOM to import factor : {factor} \
+                #     UOM to import category : {category_name} \
+                #     UOM to import uom_type : {uom_type} \
+                #     UOM to import rounding : {rounding} \
+                #     UOM to import factor_inv : {factor_inv} \
+                #     UOM to import factor : {factor} \   "
+                #     )
+                # )
         return res
 
 
