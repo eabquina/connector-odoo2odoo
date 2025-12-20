@@ -238,7 +238,6 @@ class PartnerImportMapper(Component):
 class PartnerImporter(Component):
     _name = "odoo.res.partner.importer"
     _inherit = "odoo.importer"
-    _inherits = "AbstractModel"
     _apply_on = ["odoo.res.partner"]
 
     def _import_dependencies(self, force=False):

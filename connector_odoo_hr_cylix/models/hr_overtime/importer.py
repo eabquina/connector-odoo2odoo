@@ -57,7 +57,6 @@ class HrOvertimeImportMapper(Component):
 class HrOvertimeImporter(Component):
     _name = "odoo.hr.overtime.importer"
     _inherit = "odoo.importer"
-    _inherits = "AbstractModel"
     _apply_on = ["odoo.hr.overtime"]
     
     def _import_dependencies(self, force=False):

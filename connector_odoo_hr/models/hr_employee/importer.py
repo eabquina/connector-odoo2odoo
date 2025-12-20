@@ -247,7 +247,6 @@ class EmployeeImportMapper(Component):
 class EmployeeImporter(Component):
     _name = "odoo.hr.employee.importer"
     _inherit = "odoo.importer"
-    _inherits = "AbstractModel"
     _apply_on = ["odoo.hr.employee"]
 
     def _import_dependencies(self, force=False):

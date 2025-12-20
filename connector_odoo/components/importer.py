@@ -33,7 +33,7 @@ class OdooImporter(AbstractComponent):
     _usage = "record.importer"
 
     def __init__(self, work_context):
-        super(OdooImporter, self).__init__(work_context)
+        super().__init__(work_context)
         self.external_id = None
         self.odoo_record = None
 
@@ -59,8 +59,7 @@ class OdooImporter(AbstractComponent):
         sync = binding.sync_date
         if not sync:
             return
-        from_string = fields.Datetime.from_string
-        sync_date = from_string(sync)
+        sync_date = sync  # sync_date is already a datetime object from ORM
         odoo_date = self.odoo_record.write_date
         # if the last synchronization date is greater than the last
         # update in odoo, we skip the import.

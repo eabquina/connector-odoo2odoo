@@ -51,8 +51,6 @@
                             <field name="backend_date_order" readonly="1" />
                             <field
                                 name="import_state"
-                                decoration-danger="import_state in ('error_sync', 'error_amount')"
-                                decoration-warning="import_state == 'waiting'"
                                 readonly="1"
                             />
                         </group>

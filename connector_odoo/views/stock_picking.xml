@@ -78,8 +78,6 @@
               <field name="backend_state" />
               <field
                             name="import_state"
-                            decoration-danger="import_state in ('error_sync', 'error_amount')"
-                            decoration-warning="import_state == 'waiting'"
                         />
               <button name="resync" type="object" string="Resync" />
             </group>

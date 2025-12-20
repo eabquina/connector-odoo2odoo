@@ -148,7 +148,6 @@ class HrLeaveImportMapper(Component):
 class HrLeaveImporter(Component):
     _name = "odoo.hr.leave.importer"
     _inherit = "odoo.importer"
-    _inherits = "AbstractModel"
     _apply_on = ["odoo.hr.leave"]
     
     def _import_dependencies(self, force=False):

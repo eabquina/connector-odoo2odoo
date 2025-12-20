@@ -117,11 +117,16 @@ class AccountAccountImporter(Component):
             [("code", "=", self.odoo_record.code)]
         )
         if not account_id:
+            # In Odoo 18, chart_template.code_digits is deprecated
+            # Get account code length from existing accounts or use default
             try:
-                account_length = self.env.user.company_id.chart_template.code_digits
+                sample_account = self.env["account.account"].search(
+                    [("company_id", "=", self.env.user.company_id.id)], limit=1
+                )
+                account_length = len(sample_account.code) if sample_account else 6
             except Exception:
                 account_length = 6
-            if self.odoo_record != None:             
+            if self.odoo_record is not None:             
                 account_code = self.odoo_record.code[:3]
             else:
                 account_code = 0

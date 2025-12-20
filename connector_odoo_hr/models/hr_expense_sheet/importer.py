@@ -76,7 +76,6 @@ class HrExpenseSheetImportMapper(Component):
 class HrExpenseSheetImporter(Component):
     _name = "odoo.hr.expense.sheet.importer"
     _inherit = "odoo.importer"
-    _inherits = "AbstractModel"
     _apply_on = ["odoo.hr.expense.sheet"]
     
     def _import_dependencies(self, force=False):

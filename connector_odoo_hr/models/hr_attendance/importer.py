@@ -83,7 +83,6 @@ class HrAttendanceImportMapper(Component):
 class HrAttendanceImporter(Component):
     _name = "odoo.hr.attendance.importer"
     _inherit = "odoo.importer"
-    _inherits = "AbstractModel"
     _apply_on = ["odoo.hr.attendance"]
     
     def _import_dependencies(self, force=False):

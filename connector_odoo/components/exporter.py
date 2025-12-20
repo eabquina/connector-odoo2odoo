@@ -32,7 +32,7 @@ class OdooBaseExporter(AbstractComponent):
     _usage = "record.exporter"
 
     def __init__(self, working_context):
-        super(OdooBaseExporter, self).__init__(working_context)
+        super().__init__(working_context)
         self.binding = None
         self.external_id = None
 
@@ -65,7 +65,7 @@ class OdooBaseExporter(AbstractComponent):
         if not hasattr(record, "write_date") and not record.write_date:
             # in rare case it can be empty, in doubt, import it
             return True
-        sync_date = odoo.fields.Datetime.from_string(sync)
+        sync_date = sync  # sync_date is already a datetime object from ORM
         odoo_date = record["write_date"]
         return sync_date < odoo_date
 
@@ -146,7 +146,7 @@ class OdooExporter(AbstractComponent):
     _inherit = "odoo.base.exporter"
 
     def __init__(self, working_context):
-        super(OdooExporter, self).__init__(working_context)
+        super().__init__(working_context)
         self.binding = None
 
     def _lock(self):
@@ -163,7 +163,7 @@ class OdooExporter(AbstractComponent):
         """
         sql = "SELECT id FROM %s WHERE ID = %%s FOR UPDATE NOWAIT" % self.model._table
         try:
-            self.env.cr.execute(sql, (self.binding.id,), log_exceptions=False)
+            self.env.cr.execute(sql, (self.binding.id,))
         except psycopg2.OperationalError as err:
             _logger.info(
                 "A concurrent job is already exporting the same "
@@ -171,11 +171,11 @@ class OdooExporter(AbstractComponent):
                 self.model._name,
                 self.binding.id,
             )
-            raise RetryableJobError from err(
+            raise RetryableJobError(
                 "A concurrent job is already exporting the same record "
                 "(%s with id %s). The job will be retried later."
                 % (self.model._name, self.binding.id)
-            )
+            ) from err
 
     def _has_to_skip(self):
         """Return True if the export can be skipped"""
@@ -204,14 +204,14 @@ class OdooExporter(AbstractComponent):
             yield
         except psycopg2.IntegrityError as err:
             if err.pgcode == psycopg2.errorcodes.UNIQUE_VIOLATION:
-                raise RetryableJobError from err(
+                raise RetryableJobError(
                     "A database error caused the failure of the job:\n"
                     "%s\n\n"
                     "Likely due to 2 concurrent jobs wanting to create "
                     "the same record. The job will be retried later." % err
-                )
+                ) from err
             else:
-                raise Exception from err
+                raise
 
     def _export_dependency(
         self,

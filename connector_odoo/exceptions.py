@@ -10,7 +10,7 @@ class ModuleNameValidationError(exceptions.ValidationError):
     def __init__(self, *args, **kwargs):
         self._args, self._kwargs = args, kwargs
         value = self._message()
-        super(ModuleNameValidationError, self).__init__(value)
+        super().__init__(value)
 
     def _message(self):
         """Format the message."""

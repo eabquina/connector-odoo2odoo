@@ -73,7 +73,7 @@
               <group>
                 <field name="database" />
                 <field name="login" />
-                <field name="password" password="1" />
+                <field name="password" password="True" />
                 <field name="pricelist_id" />
         <field name="force" />
         <field name="ignore_translations" />
