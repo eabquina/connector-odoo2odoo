@@ -20,6 +20,7 @@ class MetadataBatchImporter(Component):
 
     _name = "odoo.metadata.batch.importer"
     _inherit = "odoo.direct.batch.importer"
+    _usage = "metadata.batch.importer"
     _apply_on = [
         "odoo.uom.uom",
         "odoo.product.attribute",

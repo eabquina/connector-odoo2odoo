@@ -346,12 +346,11 @@ class OdooBackend(models.Model):
                     "odoo.product.attribute",
                     "odoo.product.attribute.value",
                 ):
-                    # import directly, do not delay because this
-                    # is a fast operation, a direct return is fine
-                    # and it is simpler to import them sequentially
-                    self.env[model_name].with_context(lang=lang).import_batch(
-                        backend, []
-                    )
+                    # Import directly, do not delay because this is fast and
+                    # used to validate connectivity.
+                    with backend.work_on(model_name) as work:
+                        importer = work.component(usage="metadata.batch.importer")
+                        importer.run(filters=[], force=backend.force)
             return True
         except BaseException as e:
             _logger.error(e, exc_info=True)
