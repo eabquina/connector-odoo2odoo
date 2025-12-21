@@ -10,14 +10,14 @@
             <page string="Connectors">
                 <group string="Odoo Bindings">
                     <field name="bind_ids" readonly="1" nolabel="1">
-                        <tree>
+                        <list>
                             <field name="backend_id" />
                             <field name="odoo_id" />
                             <field name="external_id" />
                             <field name="backend_state" />
                             <field name="import_state" />
                             <button name="resync" type="object" string="Resync" />
-                        </tree>
+                        </list>
                     </field>
                 </group>
                 <group string="Odoo Bindings (Inventory Dissapeared)">
@@ -26,13 +26,13 @@
                             readonly="1"
                             nolabel="1"
                         >
-                    <tree>
+                    <list>
                         <field name="backend_id" />
                         <field name="odoo_id" />
                         <field name="external_id" />
                         <field name="backend_state" />
                         <button name="resync" type="object" string="Resync" />
-                    </tree>
+                    </list>
                 </field>
                 </group>
             </page>
@@ -45,7 +45,7 @@
       <field name="name">odoo.stock.picking</field>
       <field name="model">odoo.stock.picking</field>
       <field name="arch" type="xml">
-        <tree
+        <list
                 decoration-danger="import_state in ('error_sync', 'error_amount')"
                 decoration-warning="import_state == 'waiting'"
             >
@@ -56,7 +56,7 @@
           <field name="backend_state" />
           <field name="import_state" />
           <button name="resync" type="object" string="Resync" />
-        </tree>
+        </list>
       </field>
     </record>
 

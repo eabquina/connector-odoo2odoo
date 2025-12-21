@@ -5,13 +5,13 @@
       <field name="name">openerp.picking.type</field>
       <field name="model">openerp.picking.type</field>
       <field name="arch" type="xml">
-        <tree>
+        <list>
           <field name="warehouse_id" />
           <field name="type" />
           <field name="origin_location_usage" />
           <field name="dest_location_usage" />
           <field name="picking_type_id" />
-        </tree>
+        </list>
       </field>
     </record>
 

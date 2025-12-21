@@ -5,14 +5,14 @@
       <field name="name">odoo.backend.tree</field>
       <field name="model">odoo.backend</field>
       <field name="arch" type="xml">
-        <tree>
+        <list>
           <field name="name" />
           <field name="version" />
           <field name="hostname" />
           <field name="port" />
           <field name="database" />
           <field name="state" />
-        </tree>
+        </list>
       </field>
     </record>
 
