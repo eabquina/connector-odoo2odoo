@@ -4,7 +4,7 @@
     <record forcecreate="True" id="ir_cron_import_purchase_orders" model="ir.cron">
         <field name="name">Odoo2Odoo - Import Purchase Orders</field>
         <field name="active" eval="False" />
-        <field name="user_id" ref="base.user_root" />
+        <field name="user_id" ref="base.user_admin" />
         <field name="interval_number">1</field>
         <field name="state">code</field>
         <field name="code">model.import_purchase_orders()</field>
