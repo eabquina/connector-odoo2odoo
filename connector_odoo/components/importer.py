@@ -20,7 +20,14 @@ from odoo import _, fields
 
 from odoo.addons.component.core import AbstractComponent
 from odoo.addons.connector.exception import IDMissingInBackend
-from odoo.addons.queue_job.exception import NothingToDoJob
+from odoo.addons.queue_job import exception as queue_job_exception
+
+NothingToDoJob = getattr(queue_job_exception, "NothingToDoJob", None)
+if NothingToDoJob is None:
+    NothingToDoJob = getattr(queue_job_exception, "NothingToDo", None)
+if NothingToDoJob is None:
+    class NothingToDoJob(Exception):
+        pass
 
 _logger = logging.getLogger(__name__)
 
