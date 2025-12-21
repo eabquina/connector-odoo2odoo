@@ -7,7 +7,7 @@
       <field name="inherit_id" ref="product.product_template_only_form_view" />
       <field name="arch" type="xml">
         <xpath expr="//notebook/page[@name='connector']" position="attributes">
-          <attribute name="invisible" eval="False" />
+          <attribute name="invisible">False</attribute>
         </xpath>
         <xpath expr="//notebook/page[@name='connector']" position="inside">
             <group string="Odoo Bindings">
