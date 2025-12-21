@@ -2,7 +2,7 @@
 <odoo>
 
     <record id="view_odoo_backend_tree" model="ir.ui.view">
-      <field name="name">odoo.backend.tree</field>
+      <field name="name">odoo.backend.list</field>
       <field name="model">odoo.backend</field>
       <field name="arch" type="xml">
         <list>
@@ -486,7 +486,7 @@
     <record id="action_odoo_backend" model="ir.actions.act_window">
       <field name="name">Odoo Backends</field>
       <field name="res_model">odoo.backend</field>
-      <field name="view_mode">tree,form</field>
+      <field name="view_mode">list,form</field>
     </record>
 
     <menuitem
