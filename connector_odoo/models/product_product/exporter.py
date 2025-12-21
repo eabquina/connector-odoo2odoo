@@ -103,10 +103,8 @@ class ProductExportMapper(Component):
         ("weight", "weight"),
         ("standard_price", "standard_price"),
         ("barcode", "barcode"),
-        ("type", "type"),
         ("sale_ok", "sale_ok"),
         ("purchase_ok", "purchase_ok"),
-        ("image", "image"),
     ]
 
     def get_product_by_match_field(self, record):
@@ -125,7 +123,7 @@ class ProductExportMapper(Component):
 
     @mapping
     def uom_id(self, record):
-        binder = self.binder_for("odoo.product.uom")
+        binder = self.binder_for("odoo.uom.uom")
         uom_id = binder.wrap_binding(record.uom_id)
         return {"uom_id": uom_id, "uom_po_id": uom_id}
 
@@ -140,6 +138,26 @@ class ProductExportMapper(Component):
             # Prevent not null values
             return {"default_code": "/"}
         return {"default_code": code}
+
+    @mapping
+    def product_type(self, record):
+        detailed_type = (
+            record.detailed_type if hasattr(record, "detailed_type") else record.type
+        )
+        if float(self.backend_record.version) < 14.0:
+            return {"type": detailed_type}
+        return {"detailed_type": detailed_type}
+
+    @mapping
+    def image(self, record):
+        image_value = False
+        if hasattr(record, "image_1920") and record.image_1920:
+            image_value = record.image_1920
+        elif hasattr(record, "image") and record.image:
+            image_value = record.image
+        if float(self.backend_record.version) < 13.0:
+            return {"image": image_value}
+        return {"image_1920": image_value}
 
     @only_create
     @mapping

@@ -50,6 +50,7 @@ class OdooBackend(models.Model):
             ("15.0", "Version 15.0.x"),
             ("16.0", "Version 16.0.x"),
             ("17.0", "Version 17.0.x"),
+            ("18.0", "Version 18.0.x"),
         ]
 
     active = fields.Boolean(default=True)

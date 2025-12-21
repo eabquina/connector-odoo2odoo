@@ -57,12 +57,20 @@ class ProductTemplateImportMapper(Component):
         ("description_purchase", "description_purchase"),
         ("sale_ok", "sale_ok"),
         ("purchase_ok", "purchase_ok"),
-        ("type", "detailed_type"),
     ]
 
     @mapping
     def company_id(self, record):
         return {"company_id": self.env.user.company_id.id}
+
+    @mapping
+    def product_type(self, record):
+        detailed_type = (
+            record.detailed_type if hasattr(record, "detailed_type") else record.type
+        )
+        if detailed_type:
+            return {"detailed_type": detailed_type}
+        return {}
 
     @mapping
     def uom_id(self, record):

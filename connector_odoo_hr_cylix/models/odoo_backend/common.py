@@ -70,7 +70,7 @@ class OdooBackend(models.Model):
     """
     
     def export_hr_overtime(self):
-        if not self.default_export_hr_leave:
+        if not self.default_export_hr_overtime:
             return False
         self._export_from_date("odoo.hr.overtime", "export_from_date_hr_overtime")
         return True
