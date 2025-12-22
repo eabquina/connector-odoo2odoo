@@ -2,8 +2,9 @@
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl.html)
 
 import logging
+from datetime import date, datetime
 
-from odoo import _
+from odoo import _, fields
 from odoo.exceptions import UserError
 
 from odoo.addons.component.core import AbstractComponent
@@ -164,6 +165,35 @@ class GenericAdapter(AbstractComponent):
     # _odoo_model = None
     # _admin_path = None
 
+    def _normalize_value(self, value):
+        if isinstance(value, datetime):
+            return fields.Datetime.to_string(value)
+        if isinstance(value, date):
+            return fields.Date.to_string(value)
+        if isinstance(value, tuple):
+            return tuple(self._normalize_value(item) for item in value)
+        if isinstance(value, list):
+            return [self._normalize_value(item) for item in value]
+        if isinstance(value, dict):
+            return {key: self._normalize_value(val) for key, val in value.items()}
+        return value
+
+    def _normalize_domain(self, domain):
+        if not domain:
+            return domain
+        normalized = []
+        for term in domain:
+            if isinstance(term, (list, tuple)):
+                if len(term) >= 3 and isinstance(term[0], str):
+                    term_list = list(term)
+                    term_list[2] = self._normalize_value(term_list[2])
+                    normalized.append(tuple(term_list))
+                else:
+                    normalized.append(self._normalize_domain(list(term)))
+            else:
+                normalized.append(term)
+        return normalized
+
     def search(self, filters=None, model=None, offset=0, limit=None, order=None):
         """Search records according to some criterias
         and returns a list of ids
@@ -184,9 +214,8 @@ class GenericAdapter(AbstractComponent):
         model = (
             odoo_api.env[ext_model]
         )
-        return model.search(
-            filters if filters else [], offset=offset, limit=limit, order=order
-        )
+        domain = self._normalize_domain(filters or [])
+        return model.search(domain, offset=offset, limit=limit, order=order)
 
     # pylint: disable=W8106,W0622
     def read(self, id, attributes=None, model=None, context=None):
@@ -223,6 +252,7 @@ class GenericAdapter(AbstractComponent):
 
     def create(self, data):
         ext_model = self._odoo_model
+        data = self._normalize_value(data)
         try:
             odoo_api = self.work.odoo_api.api
         except AttributeError as e:
@@ -238,6 +268,7 @@ class GenericAdapter(AbstractComponent):
 
     def write(self, id, data):
         arguments = [int(id)]
+        data = self._normalize_value(data)
         # ext_model = self._odoo_model
         try:
             odoo_api = self.work.odoo_api.api
