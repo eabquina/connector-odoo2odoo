@@ -178,18 +178,34 @@ class GenericAdapter(AbstractComponent):
             return {key: self._normalize_value(val) for key, val in value.items()}
         return value
 
-    def _normalize_domain(self, domain):
+    def _backend_version_at_least(self, version):
+        try:
+            return float(self.backend_record.version) >= version
+        except (AttributeError, TypeError, ValueError):
+            return False
+
+    def _field_map_for_model(self, model_name):
+        if model_name == "stock.move" and self._backend_version_at_least(14.0):
+            return {"date_expected": "date_deadline"}
+        return {}
+
+    def _normalize_domain(self, domain, field_map=None):
         if not domain:
             return domain
+        field_map = field_map or {}
         normalized = []
         for term in domain:
             if isinstance(term, (list, tuple)):
                 if len(term) >= 3 and isinstance(term[0], str):
                     term_list = list(term)
+                    if term_list[0] in field_map:
+                        term_list[0] = field_map[term_list[0]]
                     term_list[2] = self._normalize_value(term_list[2])
                     normalized.append(tuple(term_list))
                 else:
-                    normalized.append(self._normalize_domain(list(term)))
+                    normalized.append(
+                        self._normalize_domain(list(term), field_map=field_map)
+                    )
             else:
                 normalized.append(term)
         return normalized
@@ -214,7 +230,8 @@ class GenericAdapter(AbstractComponent):
         model = (
             odoo_api.env[ext_model]
         )
-        domain = self._normalize_domain(filters or [])
+        field_map = self._field_map_for_model(ext_model)
+        domain = self._normalize_domain(filters or [], field_map=field_map)
         return model.search(domain, offset=offset, limit=limit, order=order)
 
     # pylint: disable=W8106,W0622
