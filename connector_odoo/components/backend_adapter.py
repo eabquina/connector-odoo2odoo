@@ -13,8 +13,22 @@ _logger = logging.getLogger(__name__)
 
 try:
     import odoorpc
-except ImportError:
+except ImportError as exc:
+    odoorpc = None
+    _odoorpc_import_error = exc
     _logger.debug("Cannot import 'odoorpc' Lib")
+else:
+    _odoorpc_import_error = None
+
+
+def _ensure_odoorpc_available():
+    if odoorpc is not None:
+        return
+    msg = _(
+        "Python package 'odoorpc' is not available in the Odoo runtime environment. "
+        "Install it in the same Python environment used by the Odoo service, then restart Odoo."
+    )
+    raise UserError(msg) from _odoorpc_import_error
 
 
 
@@ -63,6 +77,7 @@ class OdooAPI(object):
         self._api = None
 
     def _api_login(self, api):
+        _ensure_odoorpc_available()
         try:
             api.login(
                 db=self._location.database,
@@ -76,6 +91,7 @@ class OdooAPI(object):
     @property
     def api(self):
         if self._api is None:
+            _ensure_odoorpc_available()
             api = odoorpc.ODOO(
                 host=self._location.hostname,
                 port=self._location.port,
