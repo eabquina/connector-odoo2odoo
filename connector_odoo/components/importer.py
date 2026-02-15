@@ -32,6 +32,27 @@ if NothingToDoJob is None:
 _logger = logging.getLogger(__name__)
 
 
+def _strip_callable_values(values):
+    removed = []
+
+    def _strip(obj):
+        if isinstance(obj, dict):
+            new_obj = {}
+            for key, value in obj.items():
+                if callable(value):
+                    removed.append(key)
+                    continue
+                new_obj[key] = _strip(value)
+            return new_obj
+        if isinstance(obj, list):
+            return [_strip(value) for value in obj if not callable(value)]
+        if isinstance(obj, tuple):
+            return tuple(_strip(value) for value in obj if not callable(value))
+        return obj
+
+    return _strip(values), removed
+
+
 class OdooImporter(AbstractComponent):
     """Base importer for Odoo"""
 
@@ -158,7 +179,16 @@ class OdooImporter(AbstractComponent):
 
     # pylint: disable=W8121
     def _create_data(self, map_record, **kwargs):
-        return map_record.values(for_create=True, **kwargs)
+        values = map_record.values(for_create=True, **kwargs)
+        sanitized, removed = _strip_callable_values(values)
+        if removed:
+            _logger.warning(
+                "Dropped callable values for %s(%s): %s",
+                self.work.model_name,
+                self.external_id,
+                sorted(set(removed)),
+            )
+        return sanitized
 
     def _create(self, data):
         """Create the Odoo record"""
@@ -175,7 +205,16 @@ class OdooImporter(AbstractComponent):
         return {}
 
     def _update_data(self, map_record, **kwargs):
-        return map_record.values(**kwargs)
+        values = map_record.values(**kwargs)
+        sanitized, removed = _strip_callable_values(values)
+        if removed:
+            _logger.warning(
+                "Dropped callable values for %s(%s): %s",
+                self.work.model_name,
+                self.external_id,
+                sorted(set(removed)),
+            )
+        return sanitized
 
     def _update(self, binding, data):
         """Update an Odoo record"""
