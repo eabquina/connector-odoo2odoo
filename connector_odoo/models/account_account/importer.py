@@ -1,9 +1,31 @@
 import logging
+import re
 
 from odoo.addons.component.core import Component
 from odoo.addons.connector.components.mapper import mapping, only_create
 
 _logger = logging.getLogger(__name__)
+
+_ACCOUNT_CODE_SANITIZE_RE = re.compile(r"[^A-Za-z0-9.]+")
+_ACCOUNT_CODE_MULTI_DOT_RE = re.compile(r"\.{2,}")
+
+
+def _sanitize_account_code(code, fallback):
+    def _to_str(value):
+        if callable(value):
+            return ""
+        return str(value or "").strip()
+
+    code = _to_str(code)
+    sanitized = _ACCOUNT_CODE_SANITIZE_RE.sub(".", code)
+    sanitized = _ACCOUNT_CODE_MULTI_DOT_RE.sub(".", sanitized).strip(".")
+    if sanitized:
+        return sanitized
+
+    fallback = _to_str(fallback)
+    fallback_sanitized = _ACCOUNT_CODE_SANITIZE_RE.sub(".", fallback)
+    fallback_sanitized = _ACCOUNT_CODE_MULTI_DOT_RE.sub(".", fallback_sanitized).strip(".")
+    return fallback_sanitized
 
 
 class AccountAccountBatchImporter(Component):
@@ -37,11 +59,41 @@ class AccountAccountImportMapper(Component):
     _apply_on = ["odoo.account.account"]
 
     direct = [
-        ("code", "code"),
         ("name", "name"),
         ("reconcile", "reconcile"),
         ("note", "note"),
     ]
+
+    def _account_search_domain(self, code):
+        account_model = self.env["account.account"]
+        company_id = self.env.user.company_id.id
+
+        if "company_id" in account_model._fields:
+            return [("company_id", "=", company_id), ("code", "=", code)]
+        if "company_ids" in account_model._fields:
+            return [
+                ("code", "=", code),
+                "|",
+                ("company_ids", "parent_of", [company_id]),
+                ("company_ids", "child_of", [company_id]),
+            ]
+        return [("code", "=", code)]
+
+    def _target_code(self, record):
+        source_code = getattr(record, "code", "")
+        fallback = f"X{getattr(record, 'id', '')}"
+        sanitized = _sanitize_account_code(source_code, fallback=fallback)
+        code_size = self.env["account.account"]._fields.get("code").size or 0
+        if code_size and len(sanitized) > code_size:
+            sanitized = sanitized[:code_size]
+        if source_code and not callable(source_code) and sanitized != str(source_code).strip():
+            _logger.warning(
+                "Sanitized account code %r -> %r for external id %s",
+                source_code,
+                sanitized,
+                getattr(record, "id", "?"),
+            )
+        return sanitized
 
     @only_create
     @mapping
@@ -49,22 +101,62 @@ class AccountAccountImportMapper(Component):
         res = {}
 
         account_model = self.env["account.account"]
-        domain = [("code", "=", record.code)]
-        company_id = self.env.user.company_id.id
-        if "company_id" in account_model._fields:
-            domain.insert(0, ("company_id", "=", company_id))
-        elif "company_ids" in account_model._fields:
-            domain = [
-                ("code", "=", record.code),
-                "|",
-                ("company_ids", "parent_of", [company_id]),
-                ("company_ids", "child_of", [company_id]),
-            ]
-        account_id = account_model.search(domain, limit=1)
+        target_code = self._target_code(record)
+        account_id = account_model.search(self._account_search_domain(target_code), limit=1)
         _logger.debug("Account Account found for %s : %s" % (record, account_id))
         if account_id:
-            res.update({"odoo_id": account_id.id})
+            # Avoid linking to a local account already bound on this backend
+            existing_binding = self.env["odoo.account.account"].search(
+                [
+                    ("backend_id", "=", self.backend_record.id),
+                    ("odoo_id", "=", account_id.id),
+                ],
+                limit=1,
+            )
+            if not existing_binding:
+                res.update({"odoo_id": account_id.id})
         return res
+
+    @only_create
+    @mapping
+    def code(self, record):
+        account_model = self.env["account.account"]
+        code_size = account_model._fields.get("code").size or 64
+        code = self._target_code(record)
+
+        existing = account_model.search(self._account_search_domain(code), limit=1)
+        if not existing:
+            return {"code": code}
+
+        existing_binding = self.env["odoo.account.account"].search(
+            [
+                ("backend_id", "=", self.backend_record.id),
+                ("odoo_id", "=", existing.id),
+            ],
+            limit=1,
+        )
+        if not existing_binding:
+            return {"code": code}
+
+        suffix = str(getattr(record, "id", ""))
+        base = code[:code_size]
+        if suffix:
+            max_base_len = code_size - len(suffix) - 1
+            base = base[: max_base_len if max_base_len > 0 else 0]
+            candidate = f"{base}.{suffix}" if base else suffix
+        else:
+            candidate = base
+
+        for i in range(1, 100):
+            candidate_i = candidate if i == 1 else f"{candidate}.{i}"
+            candidate_i = candidate_i[:code_size]
+            if not account_model.search(self._account_search_domain(candidate_i), limit=1):
+                return {"code": candidate_i}
+
+        max_prefix_len = max(code_size - 1 - len(suffix), 0) if suffix else code_size
+        prefix = code[:max_prefix_len]
+        final = f"{prefix}.{suffix}" if suffix and prefix else (suffix or code)
+        return {"code": final[:code_size]}
 
     @mapping
     def currency_id(self, record):
@@ -289,7 +381,7 @@ class AccountAccountImporter(Component):
         return data
 
     def _find_origin_account(self, code):
-        code = (code or "").strip()
+        code = _sanitize_account_code(code, fallback="")
         if not code:
             return self.env["account.account"]
 
@@ -341,25 +433,30 @@ class AccountAccountImporter(Component):
         self,
     ):
         account_model = self.env["account.account"]
-        domain = [("code", "=", self.odoo_record.code)]
-        company_id = self.env.user.company_id.id
-        if "company_id" in account_model._fields:
-            domain.insert(0, ("company_id", "=", company_id))
-        elif "company_ids" in account_model._fields:
-            domain = [
-                ("code", "=", self.odoo_record.code),
-                "|",
-                ("company_ids", "parent_of", [company_id]),
-                ("company_ids", "child_of", [company_id]),
-            ]
-        account_id = account_model.search(domain, limit=1)
-        if not account_id:
-            origin = self._find_origin_account(getattr(self.odoo_record, "code", ""))
-            if origin:
-                self.work.origing_account_id = origin
-            else:
-                self.work.origing_account_id = self.env["account.account"]
-                _logger.warning(
-                    "No origin account found for code %s; importing with minimal fields.",
-                    getattr(self.odoo_record, "code", ""),
-                )
+        source_code = getattr(self.odoo_record, "code", "")
+        target_code = _sanitize_account_code(source_code, fallback="")
+
+        origin = self.env["account.account"]
+        if target_code:
+            domain = [("code", "=", target_code)]
+            company_id = self.env.user.company_id.id
+            if "company_id" in account_model._fields:
+                domain.insert(0, ("company_id", "=", company_id))
+            elif "company_ids" in account_model._fields:
+                domain = [
+                    ("code", "=", target_code),
+                    "|",
+                    ("company_ids", "parent_of", [company_id]),
+                    ("company_ids", "child_of", [company_id]),
+                ]
+            origin = account_model.search(domain, limit=1)
+
+        if not origin:
+            origin = self._find_origin_account(source_code)
+
+        self.work.origing_account_id = origin
+        if not origin:
+            _logger.warning(
+                "No origin account found for code %s; importing with minimal fields.",
+                source_code,
+            )
