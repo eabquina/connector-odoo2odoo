@@ -48,13 +48,14 @@ class AccountAccountImportMapper(Component):
     def check_account_account_exists(self, record):
         res = {}
 
-        account_id = self.env["account.account"].search(
-            [
-                ("company_id", "=", self.env.user.company_id.id),
-                ("code", "=", record.code),
-            ],
-            limit=1,
-        )
+        account_model = self.env["account.account"]
+        domain = [("code", "=", record.code)]
+        company_id = self.env.user.company_id.id
+        if "company_id" in account_model._fields:
+            domain.insert(0, ("company_id", "=", company_id))
+        elif "company_ids" in account_model._fields:
+            domain.insert(0, ("company_ids", "in", [company_id]))
+        account_id = account_model.search(domain, limit=1)
         _logger.debug("Account Account found for %s : %s" % (record, account_id))
         if account_id:
             res.update({"odoo_id": account_id.id})
@@ -183,7 +184,13 @@ class AccountAccountImportMapper(Component):
 
     @mapping
     def company_id(self, record):
-        return {"company_id": self.env.user.company_id.id}
+        account_model = self.env["account.account"]
+        company_id = self.env.user.company_id.id
+        if "company_id" in account_model._fields:
+            return {"company_id": company_id}
+        if "company_ids" in account_model._fields:
+            return {"company_ids": [(6, 0, [company_id])]}
+        return {}
 
     @mapping
     def tag_ids(self, record):
@@ -232,10 +239,15 @@ class AccountAccountImporter(Component):
         if not code:
             return self.env["account.account"]
 
-        company_id = self.env.user.company_id.id
         account_model = self.env["account.account"]
+        company_id = self.env.user.company_id.id
+        company_domain = []
+        if "company_id" in account_model._fields:
+            company_domain = [("company_id", "=", company_id)]
+        elif "company_ids" in account_model._fields:
+            company_domain = [("company_ids", "in", [company_id])]
 
-        sample = account_model.search([("company_id", "=", company_id)], limit=1)
+        sample = account_model.search(company_domain, limit=1)
         lengths = []
         if sample and sample.code:
             lengths.append(len(sample.code))
@@ -258,7 +270,7 @@ class AccountAccountImporter(Component):
                 continue
             seen.add(candidate)
             origin = account_model.search(
-                [("company_id", "=", company_id), ("code", "=", candidate)], limit=1
+                company_domain + [("code", "=", candidate)], limit=1
             )
             if origin:
                 return origin
@@ -268,24 +280,26 @@ class AccountAccountImporter(Component):
     def _must_skip(
         self,
     ):
-        return self.env["account.account"].search(
-            [
-                ("company_id", "=", self.env.user.company_id.id),
-                ("code", "=", self.odoo_record.code),
-            ],
-            limit=1,
-        )
+        account_model = self.env["account.account"]
+        domain = [("code", "=", self.odoo_record.code)]
+        company_id = self.env.user.company_id.id
+        if "company_id" in account_model._fields:
+            domain.insert(0, ("company_id", "=", company_id))
+        elif "company_ids" in account_model._fields:
+            domain.insert(0, ("company_ids", "in", [company_id]))
+        return account_model.search(domain, limit=1)
 
     def _before_import(
         self,
     ):
-        account_id = self.env["account.account"].search(
-            [
-                ("company_id", "=", self.env.user.company_id.id),
-                ("code", "=", self.odoo_record.code),
-            ],
-            limit=1,
-        )
+        account_model = self.env["account.account"]
+        domain = [("code", "=", self.odoo_record.code)]
+        company_id = self.env.user.company_id.id
+        if "company_id" in account_model._fields:
+            domain.insert(0, ("company_id", "=", company_id))
+        elif "company_ids" in account_model._fields:
+            domain.insert(0, ("company_ids", "in", [company_id]))
+        account_id = account_model.search(domain, limit=1)
         if not account_id:
             origin = self._find_origin_account(getattr(self.odoo_record, "code", ""))
             if origin:
