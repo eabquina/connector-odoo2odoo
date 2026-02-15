@@ -54,7 +54,12 @@ class AccountAccountImportMapper(Component):
         if "company_id" in account_model._fields:
             domain.insert(0, ("company_id", "=", company_id))
         elif "company_ids" in account_model._fields:
-            domain.insert(0, ("company_ids", "in", [company_id]))
+            domain = [
+                ("code", "=", record.code),
+                "|",
+                ("company_ids", "parent_of", [company_id]),
+                ("company_ids", "child_of", [company_id]),
+            ]
         account_id = account_model.search(domain, limit=1)
         _logger.debug("Account Account found for %s : %s" % (record, account_id))
         if account_id:
@@ -72,9 +77,13 @@ class AccountAccountImportMapper(Component):
             currency = record.currency_id
         except AttributeError:
             currency = False
+        if callable(currency):
+            currency = False
         if not currency:
             return {}
         currency_name = getattr(currency, "name", False)
+        if callable(currency_name):
+            currency_name = False
         if not currency_name:
             return {}
         local_currency = self.env["res.currency"].search(
@@ -95,6 +104,8 @@ class AccountAccountImportMapper(Component):
             deprecated = record.deprecated
         except AttributeError:
             return {}
+        if callable(deprecated):
+            return {}
         return {"deprecated": deprecated}
 
     @mapping
@@ -111,11 +122,21 @@ class AccountAccountImportMapper(Component):
                 account_type = record.account_type
             except AttributeError:
                 account_type = False
+            if callable(account_type):
+                account_type = False
+
+            selection = account_model._fields["account_type"].selection
+            if not callable(selection):
+                allowed_types = {key for key, _label in selection}
+                if account_type not in allowed_types:
+                    account_type = False
 
             if not account_type:
                 try:
                     user_type = record.user_type_id
                 except AttributeError:
+                    user_type = False
+                if callable(user_type):
                     user_type = False
 
                 if user_type:
@@ -123,9 +144,13 @@ class AccountAccountImportMapper(Component):
                         legacy_type = user_type.type
                     except AttributeError:
                         legacy_type = False
+                    if callable(legacy_type):
+                        legacy_type = False
                     try:
                         legacy_group = user_type.internal_group
                     except AttributeError:
+                        legacy_group = False
+                    if callable(legacy_group):
                         legacy_group = False
 
                     if legacy_type == "receivable":
@@ -177,12 +202,21 @@ class AccountAccountImportMapper(Component):
     def tax_ids(self, record):
         if "tax_ids" not in self.env["account.account"]._fields:
             return {}
+        try:
+            internal_group = record.internal_group
+        except AttributeError:
+            internal_group = False
+        if callable(internal_group):
+            internal_group = False
+        if internal_group == "off_balance":
+            return {}
         origin = getattr(self.work, "origing_account_id", False)
         if not origin:
             return {}
         return {"tax_ids": [(6, 0, origin.tax_ids.ids)]}
 
     @mapping
+    @only_create
     def company_id(self, record):
         account_model = self.env["account.account"]
         company_id = self.env.user.company_id.id
@@ -205,6 +239,9 @@ class AccountAccountImportMapper(Component):
     def group_id(self, record):
         if "group_id" not in self.env["account.account"]._fields:
             return {}
+        field = self.env["account.account"]._fields["group_id"]
+        if field.readonly and not field.inverse:
+            return {}
         origin = getattr(self.work, "origing_account_id", False)
         if not origin:
             return {}
@@ -213,6 +250,9 @@ class AccountAccountImportMapper(Component):
     @mapping
     def root_id(self, record):
         if "root_id" not in self.env["account.account"]._fields:
+            return {}
+        field = self.env["account.account"]._fields["root_id"]
+        if field.readonly and not field.inverse:
             return {}
         origin = getattr(self.work, "origing_account_id", False)
         if not origin:
@@ -233,6 +273,20 @@ class AccountAccountImporter(Component):
     _name = "odoo.account.account.importer"
     _inherit = "odoo.importer"
     _apply_on = ["odoo.account.account"]
+
+    def _create_data(self, map_record, **kwargs):
+        data = super()._create_data(map_record, **kwargs)
+        # If we link to an existing local account (odoo_id is set), avoid writing
+        # account.account fields during the binding creation (multi-company + computed fields).
+        if data.get("odoo_id"):
+            account_fields = set(self.env["account.account"]._fields)
+            account_model = self.env["account.account"]
+            if "company_ids" in account_model._fields:
+                data["company_ids"] = [(4, self.env.user.company_id.id)]
+            for key in list(data):
+                if key in account_fields and key != "company_ids":
+                    data.pop(key, None)
+        return data
 
     def _find_origin_account(self, code):
         code = (code or "").strip()
@@ -277,17 +331,11 @@ class AccountAccountImporter(Component):
 
         return account_model
 
-    def _must_skip(
-        self,
-    ):
-        account_model = self.env["account.account"]
-        domain = [("code", "=", self.odoo_record.code)]
-        company_id = self.env.user.company_id.id
-        if "company_id" in account_model._fields:
-            domain.insert(0, ("company_id", "=", company_id))
-        elif "company_ids" in account_model._fields:
-            domain.insert(0, ("company_ids", "in", [company_id]))
-        return account_model.search(domain, limit=1)
+    def _must_skip(self):
+        # Don't skip just because an account with the same code already exists:
+        # we still need to create the binding so other imports can resolve it
+        # through the binder (e.g., partner property accounts).
+        return
 
     def _before_import(
         self,
@@ -298,7 +346,12 @@ class AccountAccountImporter(Component):
         if "company_id" in account_model._fields:
             domain.insert(0, ("company_id", "=", company_id))
         elif "company_ids" in account_model._fields:
-            domain.insert(0, ("company_ids", "in", [company_id]))
+            domain = [
+                ("code", "=", self.odoo_record.code),
+                "|",
+                ("company_ids", "parent_of", [company_id]),
+                ("company_ids", "child_of", [company_id]),
+            ]
         account_id = account_model.search(domain, limit=1)
         if not account_id:
             origin = self._find_origin_account(getattr(self.odoo_record, "code", ""))
