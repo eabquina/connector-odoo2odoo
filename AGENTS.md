@@ -37,3 +37,5 @@
   - binder resolution for dependencies
 - Run repo checks on touched files when practical: `pre-commit run --files <files...>`.
 
+## Version Control
+- For every change, create a git commit with a clear message and push it to the remote branch (unless explicitly told not to).
