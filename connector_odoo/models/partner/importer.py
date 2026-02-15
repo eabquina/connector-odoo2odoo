@@ -119,6 +119,14 @@ class PartnerImportMapper(Component):
                     )
                 ]
             }
+        return {}
+
+    @mapping
+    def email(self, record):
+        email = _safe_value(record, "email", None)
+        if email is None:
+            return {}
+        return {"email": email}
 
     @mapping
     def street(self, record):
@@ -189,6 +197,22 @@ class PartnerImportMapper(Component):
         return {"image_1920": image}
 
     @mapping
+    def parent_id(self, record):
+        parent_id = _safe_value(record, "parent_id", False)
+        if parent_id:
+            binder = self.binder_for("odoo.res.partner")
+            parent = binder.to_internal(parent_id.id, unwrap=True)
+            if parent:
+                return {"parent_id": parent.id}
+        return {}
+
+    @mapping
+    def company_id(self, record):
+        """Map company_id to the current user's company."""
+        # Don't import company_id from source - use local company
+        return {"company_id": self.env.company.id}
+
+    @mapping
     def user_id(self, record):
         user_id = _safe_value(record, "user_id", False)
         if user_id:
@@ -196,6 +220,7 @@ class PartnerImportMapper(Component):
             user = binder.to_internal(user_id.id, unwrap=True)
             if user:
                 return {"user_id": user.id}
+        return {}
 
     @mapping
     def property_account_payable(self, record):
@@ -213,6 +238,7 @@ class PartnerImportMapper(Component):
             account = binder.to_internal(property_account_payable_id.id, unwrap=True)
             if account:
                 return {"property_account_payable_id": account.id}
+        return {}
 
     @mapping
     def property_account_receivable(self, record):
@@ -230,6 +256,7 @@ class PartnerImportMapper(Component):
             account = binder.to_internal(property_account_receivable_id.id, unwrap=True)
             if account:
                 return {"property_account_receivable_id": account.id}
+        return {}
 
     # @mapping
     # def property_purchase_currency_id(self, record):
