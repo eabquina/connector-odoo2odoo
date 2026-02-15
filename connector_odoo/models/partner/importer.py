@@ -10,34 +10,45 @@ from odoo.addons.connector.components.mapper import mapping
 _logger = logging.getLogger(__name__)
 
 
+def _safe_value(record, name, default=False):
+    """Return an attribute value from an odoorpc record safely.
+
+    odoorpc returns a callable rpc_method for missing fields; treat it as missing.
+    """
+    try:
+        value = getattr(record, name)
+    except AttributeError:
+        return default
+    if callable(value):
+        return default
+    return value
+
+
 def get_state_from_record(self, record):
     state_id = False
     country_id = False
-    if record.country_id:
-        country_code = record.country_id.code
+    country = _safe_value(record, "country_id", False)
+    if country:
+        country_code = _safe_value(country, "code", False)
     else:
         country_code = "CA"
-    country = self.env["res.country"].search(
-        [
-            ("code", "=", country_code),
-        ]
-    )
-    country_id = country.id
-    if hasattr(record, "state_id") and record.state_id:
-        state = self.env["res.country.state"].search(
-            [
-                ("code", "=", record.state_id.code),
-                ("country_id", "=", country_id),
-            ]
-        )
-        if not state:
-            state = self.env["res.country.state"].search(
-                [
-                    ("name", "=", record.state_id.name),
-                    ("country_id", "=", country_id),
-                ]
+    country_rec = self.env["res.country"].search([("code", "=", country_code)], limit=1)
+    country_id = country_rec.id
+
+    state = _safe_value(record, "state_id", False)
+    if state and country_id:
+        state_code = _safe_value(state, "code", False)
+        state_name = _safe_value(state, "name", False)
+        state_rec = False
+        if state_code:
+            state_rec = self.env["res.country.state"].search(
+                [("code", "=", state_code), ("country_id", "=", country_id)], limit=1
             )
-        state_id = state.id
+        if not state_rec and state_name:
+            state_rec = self.env["res.country.state"].search(
+                [("name", "=", state_name), ("country_id", "=", country_id)], limit=1
+            )
+        state_id = state_rec.id if state_rec else False
     return {
         "state_id": state_id,
         "country_id": country_id,
@@ -86,16 +97,24 @@ class PartnerImportMapper(Component):
 
     @mapping
     def category_id(self, record):
-        if record.category_id:
+        categories = _safe_value(record, "category_id", False)
+        if categories:
             binder = self.binder_for("odoo.res.partner.category")
+            internal_category_ids = []
+            for category_id in categories.ids:
+                internal_category = binder.to_internal(category_id, unwrap=True)
+                if internal_category:
+                    internal_category_ids.append(internal_category.id)
+            if not internal_category_ids:
+                return {}
             return {
                 "category_id": [
                     (
                         6,
                         0,
                         [
-                            binder.to_internal(category_id, unwrap=True).id
-                            for category_id in record.category_id.ids
+                            category_id
+                            for category_id in internal_category_ids
                         ],
                     )
                 ]
@@ -103,23 +122,38 @@ class PartnerImportMapper(Component):
 
     @mapping
     def street(self, record):
-        return {"street": record.street}
+        street = _safe_value(record, "street", None)
+        if street is None:
+            return {}
+        return {"street": street}
 
     @mapping
     def street2(self, record):
-        return {"street2": record.street2}
+        street2 = _safe_value(record, "street2", None)
+        if street2 is None:
+            return {}
+        return {"street2": street2}
 
     @mapping
     def phone(self, record):
-        return {"phone": record.phone}
+        phone = _safe_value(record, "phone", None)
+        if phone is None:
+            return {}
+        return {"phone": phone}
 
     @mapping
     def mobile(self, record):
-        return {"mobile": record.mobile}
+        mobile = _safe_value(record, "mobile", None)
+        if mobile is None:
+            return {}
+        return {"mobile": mobile}
 
     @mapping
     def city(self, record):
-        return {"city": record.city}
+        city = _safe_value(record, "city", None)
+        if city is None:
+            return {}
+        return {"city": city}
 
     @mapping
     def state_id(self, record):
@@ -127,74 +161,52 @@ class PartnerImportMapper(Component):
 
     @mapping
     def customer(self, record):
-        if self.backend_record.version in (
-            "7.0",
-            "8.0",
-            "9.0",
-            "10.0",
-            "11.0",
-            "12.0",
-            "13.0",
-            "14.0",
-            "15.0",
-            "16.0",
-            "17.0",
-        ):
-            return {"customer_rank": record.customer}
-        else:
-            return {"customer_rank": record.customer_rank}
+        customer_rank = _safe_value(record, "customer_rank", None)
+        if customer_rank is None:
+            customer = _safe_value(record, "customer", None)
+            if customer is None:
+                return {}
+            customer_rank = int(bool(customer))
+        return {"customer_rank": customer_rank}
 
     @mapping
     def supplier(self, record):
-        if self.backend_record.version in (
-            "7.0",
-            "8.0",
-            "9.0",
-            "10.0",
-            "11.0",
-            "12.0",
-            "13.0",
-            "14.0",
-            "15.0",
-            "16.0",
-            "17.0",
-        ):
-            return {"supplier_rank": record.supplier}
-        else:
-            return {"supplier_rank": record.supplier_rank}
+        supplier_rank = _safe_value(record, "supplier_rank", None)
+        if supplier_rank is None:
+            supplier = _safe_value(record, "supplier", None)
+            if supplier is None:
+                return {}
+            supplier_rank = int(bool(supplier))
+        return {"supplier_rank": supplier_rank}
 
     @mapping
     def image(self, record):
-        if self.backend_record.version in (
-            "7.0",
-            "8.0",
-            "9.0",
-            "10.0",
-            "11.0",
-            "12.0",
-            "13.0",
-            "14.0",
-            "15.0",
-            "16.0",
-            "17.0",
-        ):
-            return {"image_1920": record.image if hasattr(record, "image") else False}
-        else:
-            return {"image_1920": record.image_1920}
+        image = _safe_value(record, "image_1920", None)
+        if image is None:
+            image = _safe_value(record, "image", None)
+        if image is None:
+            return {}
+        return {"image_1920": image}
 
     @mapping
     def user_id(self, record):
-        if record.user_id:
+        user_id = _safe_value(record, "user_id", False)
+        if user_id:
             binder = self.binder_for("odoo.res.users")
-            user = binder.to_internal(record.user_id.id, unwrap=True)
-            return {"user_id": user.id}
+            user = binder.to_internal(user_id.id, unwrap=True)
+            if user:
+                return {"user_id": user.id}
 
     @mapping
     def property_account_payable(self, record):
         if float(self.backend_record.version) >= 9.0:
-            property_account_payable_id = record.property_account_payable_id
+            property_account_payable_id = _safe_value(
+                record, "property_account_payable_id", False
+            )
         else:
-            property_account_payable_id = record.property_account_payable
+            property_account_payable_id = _safe_value(
+                record, "property_account_payable", False
+            )
 
         if property_account_payable_id:
             binder = self.binder_for("odoo.account.account")
@@ -205,9 +217,13 @@ class PartnerImportMapper(Component):
     @mapping
     def property_account_receivable(self, record):
         if float(self.backend_record.version) >= 9.0:
-            property_account_receivable_id = record.property_account_receivable_id
+            property_account_receivable_id = _safe_value(
+                record, "property_account_receivable_id", False
+            )
         else:
-            property_account_receivable_id = record.property_account_receivable
+            property_account_receivable_id = _safe_value(
+                record, "property_account_receivable", False
+            )
 
         if property_account_receivable_id:
             binder = self.binder_for("odoo.account.account")
@@ -244,47 +260,54 @@ class PartnerImporter(Component):
         """Import the dependencies for the record"""
         # import parent
         _logger.info("Importing dependencies for external ID %s", self.external_id)
-        if self.odoo_record.parent_id:
+        parent_id = _safe_value(self.odoo_record, "parent_id", False)
+        if parent_id:
             _logger.info("Importing parent")
             self._import_dependency(
-                self.odoo_record.parent_id.id, "odoo.res.partner", force=force
+                parent_id.id, "odoo.res.partner", force=force
             )
 
-        if self.odoo_record.user_id:
+        user_id = _safe_value(self.odoo_record, "user_id", False)
+        if user_id:
             _logger.info("Importing user")
             self._import_dependency(
-                self.odoo_record.user_id.id, "odoo.res.users", force=force
+                user_id.id, "odoo.res.users", force=force
             )
 
         _logger.info("Importing categories")
-        for category_id in self.odoo_record.category_id:
+        categories = _safe_value(self.odoo_record, "category_id", False)
+        for category_id in categories or []:
             self._import_dependency(
                 category_id.id, "odoo.res.partner.category", force=force
             )
 
-        if self.odoo_record.property_account_payable:
+        payable = _safe_value(self.odoo_record, "property_account_payable_id", False)
+        if payable:
             _logger.info("Importing account payable")
             self._import_dependency(
-                self.odoo_record.property_account_payable_id.id,
+                payable.id,
                 "odoo.account.account",
                 force=force,
             )
 
-        if self.odoo_record.property_account_receivable:
+        receivable = _safe_value(
+            self.odoo_record, "property_account_receivable_id", False
+        )
+        if receivable:
             _logger.info("Importing account receivable")
             self._import_dependency(
-                self.odoo_record.property_account_receivable_id.id,
+                receivable.id,
                 "odoo.account.account",
                 force=force,
             )
 
-        if (
-            hasattr(self.odoo_record, "property_purchase_currency_id")
-            and self.odoo_record.property_purchase_currency_id
-        ):
+        purchase_currency = _safe_value(
+            self.odoo_record, "property_purchase_currency_id", None
+        )
+        if purchase_currency:
             _logger.info("Importing supplier currency")
             self._import_dependency(
-                self.odoo_record.property_purchase_currency_id.id,
+                purchase_currency.id,
                 "odoo.res.currency",
                 force=force,
             )
