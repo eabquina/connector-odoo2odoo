@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <!-- Views -->
+        <!-- Form View -->
+
+        <!-- Actions -->
+        <!-- Work Schedule -->
+        <record id="resource_calendar_change_lines_action" model="ir.actions.act_window">
+            <field name="name">Work Schedule Change Request</field>
+            <field name="res_model">resource.calendar.change.lines</field>
+            <field name="view_mode">tree,form</field>
+            <field name="help" type="html">
+                <p class="oe_view_nocontent_create">
+                    Click to New create a Work Schedule Request.
+                </p>
+            </field>
+        </record>
+
+
+        <!-- MenuItems -->
+        <menuitem id="resource_calendar_change_lines" name="Request Lines"
+                  parent="resource_calendar_change"
+                  action="resource_calendar_change_lines_action"
+                  groups="base.group_user"/>
+    </data>
+</odoo>

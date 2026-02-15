@@ -15,6 +15,8 @@
     "depends": [
         "connector_odoo_hr",
         "ohrms_overtime_ent",
+        "working_schedule_adv",
+        "working_schedule_adv_hr_payroll",
     ],
     "data": [
         "security/ir.model.access.csv",
@@ -22,6 +24,9 @@
         "views/odoo_connector_menus.xml",
         "views/hr_attendance_late.xml",
         "views/hr_overtime.xml",
+        "views/resource_calendar_change_type.xml",
+        "views/resource_calendar_change.xml",
+        "views/resource_calendar_change_lines.xml",
     ],
     "demo": [],
     "qweb": [],

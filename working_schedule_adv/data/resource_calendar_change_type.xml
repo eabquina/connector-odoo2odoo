@@ -1,0 +1,40 @@
+<odoo>
+    <data noupdate="0">
+        <record id="resource_calendar_change_type_change_shift" model="resource.calendar.change.type">
+            <field name="name">Change Shift</field>
+            <field name="code">CHANGE_SHIFT</field>
+        </record>
+        <record id="resource_calendar_change_type_compressed_workweek" model="resource.calendar.change.type">
+            <field name="name">Compressed Workweek</field>
+            <field name="code">COMPRESSED_WORKWEEK</field>
+        </record>
+        <record id="resource_calendar_change_type_reduction_workdays" model="resource.calendar.change.type">
+            <field name="name">Reduction of Workdays</field>
+            <field name="code">REDUCTION_OF_WORKDAYS</field>
+        </record>
+        <record id="resource_calendar_change_type_rotation_workers" model="resource.calendar.change.type">
+            <field name="name">Rotation of Workers</field>
+            <field name="code">ROTATION_OF_WORKERS</field>
+        </record>
+        <record id="resource_calendar_change_type_forced_leave" model="resource.calendar.change.type">
+            <field name="name">Forced Leave</field>
+            <field name="code">FORCED_LEAVE</field>
+        </record>
+        <record id="resource_calendar_change_type_broken_time" model="resource.calendar.change.type">
+            <field name="name">Broken Time</field>
+            <field name="code">BROKEN_TIME</field>
+        </record>
+        <record id="resource_calendar_change_type_flexi_holidays" model="resource.calendar.change.type">
+            <field name="name">Flexi-Holidays</field>
+            <field name="code">FLEXI_HOLIDAYS</field>
+        </record>
+        <record id="resource_calendar_change_type_offset" model="resource.calendar.change.type">
+            <field name="name">Offset Hours</field>
+            <field name="code">OFFSET_HOURS</field>
+        </record>
+        <record id="resource_calendar_change_type_others" model="resource.calendar.change.type">
+            <field name="name">Others</field>
+            <field name="code">OTHERS</field>
+        </record>
+    </data>
+</odoo>

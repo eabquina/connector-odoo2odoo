@@ -101,8 +101,8 @@
                     </group>
                     </page>
 
-                    <page string="Attendance" name="attendance">
-                        <group name="attendance">
+	                    <page string="Attendance" name="attendance">
+	                        <group name="attendance">
                             <group name="attendance_import_export" string="Import/Export Config">
                                 <group name="attendance_import">
                                     <field name="default_import_hr_attendance" />
@@ -221,11 +221,113 @@
                                             nolabel="1" />
                                 </group>
                             </group>
-                        </group>
-                    </page>
+	                        </group>
+	                    </page>
 
-                </xpath>
-            </data>
-        </field>
-    </record>
+                        <page string="Work Schedule" name="work_schedule">
+                            <group name="work_schedule">
+                                <group name="ws_import_export" string="Import/Export Config">
+                                    <group name="ws_import">
+                                        <field name="default_import_resource_calendar_change_type" />
+                                        <field name="default_import_resource_calendar_change" />
+                                        <field name="default_import_resource_calendar_change_lines" />
+                                    </group>
+                                    <group name="ws_export">
+                                        <field name="default_export_resource_calendar_change_type" />
+                                        <field name="default_export_resource_calendar_change" />
+                                        <field name="default_export_resource_calendar_change_lines" />
+                                    </group>
+                                </group>
+
+                                <group name="ws_import_export_filters" string="Import/Export Filters">
+                                    <group>
+                                        <field name="local_domain_filter_resource_calendar_change_type" />
+                                        <field name="local_domain_filter_resource_calendar_change" />
+                                        <field name="local_domain_filter_resource_calendar_change_lines" />
+                                    </group>
+                                    <group>
+                                        <field name="external_domain_filter_resource_calendar_change_type" />
+                                        <field name="external_domain_filter_resource_calendar_change" />
+                                        <field name="external_domain_filter_resource_calendar_change_lines" />
+                                    </group>
+                                </group>
+
+                                <group name="ws_import_operations" string="Import Operations">
+                                    <group name="ws_import_resource_calendar_change_type">
+                                        <field name="import_from_date_resource_calendar_change_type" nolabel="0" />
+                                        <button
+                                            name="import_resource_calendar_change_type"
+                                            type="object"
+                                            string="Import Change Types"
+                                            class="oe_highlight"
+                                            help="Import Work Schedule Change Types"
+                                            nolabel="1"
+                                        />
+                                    </group>
+                                    <group name="ws_import_resource_calendar_change">
+                                        <field name="import_from_date_resource_calendar_change" nolabel="0" />
+                                        <button
+                                            name="import_resource_calendar_change"
+                                            type="object"
+                                            string="Import Requests"
+                                            class="oe_highlight"
+                                            help="Import Work Schedule Change Requests"
+                                            nolabel="1"
+                                        />
+                                    </group>
+                                    <group name="ws_import_resource_calendar_change_lines">
+                                        <field name="import_from_date_resource_calendar_change_lines" nolabel="0" />
+                                        <button
+                                            name="import_resource_calendar_change_lines"
+                                            type="object"
+                                            string="Import Request Lines"
+                                            class="oe_highlight"
+                                            help="Import Work Schedule Change Lines"
+                                            nolabel="1"
+                                        />
+                                    </group>
+                                </group>
+
+                                <group name="ws_export_operations" string="Export Operations">
+                                    <group name="ws_export_resource_calendar_change_type">
+                                        <field name="export_from_date_resource_calendar_change_type" nolabel="0" />
+                                        <button
+                                            name="export_resource_calendar_change_type"
+                                            type="object"
+                                            string="Export Change Types"
+                                            class="oe_highlight"
+                                            help="Export Work Schedule Change Types"
+                                            nolabel="1"
+                                        />
+                                    </group>
+                                    <group name="ws_export_resource_calendar_change">
+                                        <field name="export_from_date_resource_calendar_change" nolabel="0" />
+                                        <button
+                                            name="export_resource_calendar_change"
+                                            type="object"
+                                            string="Export Requests"
+                                            class="oe_highlight"
+                                            help="Export Work Schedule Change Requests"
+                                            nolabel="1"
+                                        />
+                                    </group>
+                                    <group name="ws_export_resource_calendar_change_lines">
+                                        <field name="export_from_date_resource_calendar_change_lines" nolabel="0" />
+                                        <button
+                                            name="export_resource_calendar_change_lines"
+                                            type="object"
+                                            string="Export Request Lines"
+                                            class="oe_highlight"
+                                            help="Export Work Schedule Change Lines"
+                                            nolabel="1"
+                                        />
+                                    </group>
+                                </group>
+                            </group>
+                        </page>
+	
+	                </xpath>
+	            </data>
+	        </field>
+	    </record>
 </odoo>
