@@ -85,7 +85,6 @@ class PartnerImportMapper(Component):
 
     # TODO :     special_price => minimal_price
     direct = [
-        ("name", "name"),
         ("website", "website"),
         ("lang", "lang"),
         ("ref", "ref"),
@@ -94,6 +93,17 @@ class PartnerImportMapper(Component):
         ("zip", "zip"),
         #("delivery_margin", "delivery_margin"),
     ]
+
+    @mapping
+    def name(self, record):
+        name = _safe_value(record, "name", None)
+        if not name:
+            # Fallback: use display_name or a placeholder
+            name = _safe_value(record, "display_name", None)
+        if not name:
+            # Last resort fallback
+            name = f"Partner {record.id}"
+        return {"name": name}
 
     @mapping
     def category_id(self, record):
