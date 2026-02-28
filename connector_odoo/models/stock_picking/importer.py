@@ -237,6 +237,26 @@ class OdooPickingMapper(Component):
 
         return self.env["stock.picking.type"]
 
+    def _get_any_local_picking_type_fallback(self, picking_type):
+        """Last-resort fallback: pick one local picking type by code."""
+        if not picking_type:
+            return self.env["stock.picking.type"]
+
+        company = self.env.user.company_id
+        picking_types = self.env["stock.picking.type"].search(
+            [("code", "=", picking_type), ("company_id", "in", [False, company.id])],
+            order="warehouse_id, sequence, id",
+            limit=1,
+        )
+        if picking_types:
+            _logger.warning(
+                "Using last-resort local picking type fallback for code %s: %s (%s)",
+                picking_type,
+                picking_types.display_name,
+                picking_types.id,
+            )
+        return picking_types
+
     @mapping
     def odoo_id(self, record):
         local_picking = self._get_local_picking_fallback(record)
@@ -316,12 +336,15 @@ class OdooPickingMapper(Component):
             )
             if fallback_picking_type_id:
                 return fallback_picking_type_id
+            fallback_picking_type_id = self._get_any_local_picking_type_fallback(
+                picking_type
+            )
+            if fallback_picking_type_id:
+                return fallback_picking_type_id
             raise ValidationError(
                 _(
-                    "No picking type found for warehouse {}-{} "
-                    "and type {} from {} {}-{}. "
-                    "Please go to configuration connector picking type mapping "
-                    "and include warehouse and type char field value"
+                    "No local or mapped picking type found for warehouse {}-{} "
+                    "and type {} from {} {}-{}."
                 ).format(
                     warehouse_ref,
                     warehouse_name,
@@ -332,20 +355,13 @@ class OdooPickingMapper(Component):
                 )
             )
         if len(picking_type_mapping_id) > 1:
-            raise ValidationError(
-                _(
-                    "Multiple picking type mappings found for warehouse {}-{} "
-                    "and type {} from {} {}-{}. "
-                    "Please keep only one matching connector picking type mapping."
-                ).format(
-                    warehouse_ref,
-                    warehouse_name,
-                    picking_type,
-                    model_label,
-                    record["id"],
-                    record["name"],
-                )
+            fallback_picking_type_id = self._get_any_local_picking_type_fallback(
+                picking_type
             )
+            if fallback_picking_type_id:
+                return fallback_picking_type_id
+            # Deterministic fallback to keep import non-blocking.
+            return picking_type_mapping_id.sorted("id")[0].picking_type_id
         return picking_type_mapping_id.picking_type_id
 
     @mapping
