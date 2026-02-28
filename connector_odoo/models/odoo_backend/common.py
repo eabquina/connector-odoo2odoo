@@ -462,12 +462,7 @@ class OdooBackend(models.Model):
                 )
             else:
                 from_date = None
-            identity_key = (
-                f"odoo.import_batch:{model}:backend:{backend.id}:{from_date_field}"
-            )
-            self.env[model].with_delay(identity_key=identity_key).import_batch(
-                backend, filters
-            )
+            self.env[model].with_delay().import_batch(backend, filters)
 
         next_time = import_start_time - timedelta(seconds=IMPORT_DELTA_BUFFER)
         self.write({from_date_field: next_time})
@@ -507,11 +502,6 @@ class OdooBackend(models.Model):
                 filters.append(("write_date", ">", from_date))
             else:
                 from_date = None
-            identity_key = (
-                f"odoo.export_batch:{model}:backend:{backend.id}:{from_date_field}"
-            )
-            self.env[model].with_delay(identity_key=identity_key).export_batch(
-                backend, filters
-            )
+            self.env[model].with_delay().export_batch(backend, filters)
         next_time = import_start_time - timedelta(seconds=IMPORT_DELTA_BUFFER)
         self.write({from_date_field: next_time})
