@@ -193,6 +193,7 @@ class ProductImportMapper(Component):
         return {"barcode": barcode}
 
     @mapping
+    @only_create
     def product_tmpl_id(self, record):
         if self.backend_record.work_with_variants and record.product_tmpl_id:
             binder = self.binder_for("odoo.product.template")
