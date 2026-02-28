@@ -3,6 +3,8 @@
 
 import logging
 
+from psycopg2 import IntegrityError
+
 from odoo import _
 from odoo.exceptions import ValidationError
 
@@ -38,6 +40,26 @@ class StockPickingImporter(Component):
     _name = "odoo.stock.picking.importer"
     _inherit = "odoo.importer"
     _apply_on = ["odoo.stock.picking"]
+
+    def _create(self, data):
+        """Create binding, reusing existing one if concurrent job created it."""
+        try:
+            with self.env.cr.savepoint():
+                return super()._create(data)
+        except IntegrityError:
+            backend_id = data.get("backend_id")
+            odoo_id = data.get("odoo_id")
+            if backend_id and odoo_id:
+                existing_binding = self.env["odoo.stock.picking"].search(
+                    [
+                        ("backend_id", "=", backend_id),
+                        ("odoo_id", "=", odoo_id),
+                    ],
+                    limit=1,
+                )
+                if existing_binding:
+                    return existing_binding
+            raise
 
     def _must_skip(
         self,
