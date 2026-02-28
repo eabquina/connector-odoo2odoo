@@ -240,14 +240,28 @@ class OdooPickingMapper(Component):
     def _get_any_local_picking_type_fallback(self, picking_type):
         """Last-resort fallback: pick one local picking type by code."""
         if not picking_type:
-            return self.env["stock.picking.type"]
+            # Absolute fallback to keep import non-blocking.
+            return self.env["stock.picking.type"].search([], order="sequence, id", limit=1)
 
+        # 1) Try current company first.
         company = self.env.user.company_id
         picking_types = self.env["stock.picking.type"].search(
             [("code", "=", picking_type), ("company_id", "in", [False, company.id])],
             order="warehouse_id, sequence, id",
             limit=1,
         )
+        # 2) Fallback to any company.
+        if not picking_types:
+            picking_types = self.env["stock.picking.type"].search(
+                [("code", "=", picking_type)],
+                order="company_id, warehouse_id, sequence, id",
+                limit=1,
+            )
+        # 3) Absolute fallback to first available picking type.
+        if not picking_types:
+            picking_types = self.env["stock.picking.type"].search(
+                [], order="company_id, warehouse_id, sequence, id", limit=1
+            )
         if picking_types:
             _logger.warning(
                 "Using last-resort local picking type fallback for code %s: %s (%s)",
