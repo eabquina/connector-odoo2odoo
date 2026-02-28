@@ -43,6 +43,16 @@ class StockPickingImporter(Component):
 
     def _create(self, data):
         """Create binding, reusing existing one if concurrent job created it."""
+        if data.get("odoo_id"):
+            # Binding on an existing stock.picking must not write inherited
+            # stock fields (locations, moves, etc.) as that can invalidate
+            # valuation rules for already processed pickings.
+            stock_fields = set(self.env["stock.picking"]._fields)
+            data = {
+                key: value
+                for key, value in data.items()
+                if key == "odoo_id" or key not in stock_fields
+            }
         try:
             with self.env.cr.savepoint():
                 return super()._create(data)
