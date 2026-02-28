@@ -123,7 +123,13 @@ class UoMImporter(Component):
     _inherit = "odoo.importer"
     _apply_on = "odoo.uom.uom"
 
-    _protected_existing_uom_fields = {"factor", "factor_inv"}
+    _protected_existing_uom_fields = {
+        "factor",
+        "factor_inv",
+        "uom_type",
+        "category_id",
+        "rounding",
+    }
 
     def _strip_protected_uom_fields(self, values, existing_odoo_id=False):
         """Avoid forbidden ratio writes on already-used local UoM records."""
