@@ -162,6 +162,34 @@ class OdooPickingMapper(Component):
             return picking_type.strip().lower()
         return False
 
+    def _get_sale_picking_type_fallback(self, record, picking_type):
+        """Fallback picking type from already imported local sale pickings."""
+        if not getattr(record, "sale_id", False):
+            return self.env["stock.picking.type"]
+
+        sale_binding = self.binder_for("odoo.sale.order").to_internal(
+            record.sale_id.id, unwrap=True
+        )
+        if not sale_binding:
+            return self.env["stock.picking.type"]
+
+        sale_pickings = sale_binding.picking_ids
+        if getattr(record, "name", False):
+            named = sale_pickings.filtered(lambda p: p.name == record.name)
+            if len(named) == 1:
+                return named.picking_type_id
+        if getattr(record, "origin", False):
+            origin = sale_pickings.filtered(lambda p: p.origin == record.origin)
+            if len(origin) == 1:
+                return origin.picking_type_id
+        if picking_type:
+            by_code = sale_pickings.filtered(
+                lambda p: p.picking_type_id.code == picking_type
+            )
+            if len(by_code) == 1:
+                return by_code.picking_type_id
+        return self.env["stock.picking.type"]
+
     @mapping
     def odoo_id(self, record):
         if record.sale_id and record.move_lines:
@@ -228,6 +256,11 @@ class OdooPickingMapper(Component):
             picking_type_mapping_id = picking_type_mapping_candidates
 
         if not picking_type_mapping_id:
+            fallback_picking_type_id = self._get_sale_picking_type_fallback(
+                record, picking_type
+            )
+            if fallback_picking_type_id:
+                return fallback_picking_type_id
             raise ValidationError(
                 _(
                     "No picking type found for warehouse {}-{} "
