@@ -212,15 +212,20 @@ class OdooPickingMapper(Component):
         domain = [("type", "=", picking_type)]
         if warehouse_id:
             domain.append(("warehouse_id.odoo_id.id", "=", warehouse_id.id))
-        picking_type_mapping_id = self.env["openerp.picking.type"].search(domain)
-        if len(picking_type_mapping_id) != 1:
+        picking_type_mapping_candidates = self.env["openerp.picking.type"].search(domain)
+        picking_type_mapping_id = picking_type_mapping_candidates
+        if len(picking_type_mapping_id) != 1 and source_location:
             picking_type_mapping_id = picking_type_mapping_id.filtered(
                 lambda x: x.origin_location_usage == source_location.usage
             )
-        if len(picking_type_mapping_id) != 1:
+        if len(picking_type_mapping_id) != 1 and dest_location:
             picking_type_mapping_id = picking_type_mapping_id.filtered(
                 lambda x: x.dest_location_usage == dest_location.usage
             )
+        # If usage-based filtering removed all candidates but there is a single
+        # mapping for the resolved type(+warehouse), use it as safe fallback.
+        if not picking_type_mapping_id and len(picking_type_mapping_candidates) == 1:
+            picking_type_mapping_id = picking_type_mapping_candidates
 
         if not picking_type_mapping_id:
             raise ValidationError(
