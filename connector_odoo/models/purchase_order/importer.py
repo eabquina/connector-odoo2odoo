@@ -164,10 +164,36 @@ class PurchaseOrderImportMapper(Component):
 
     @mapping
     def picking_type_id(self, record):
-        binder = self.binder_for("odoo.stock.picking.type")
-        picking_type_id = binder.to_internal(record.picking_type_id.id, unwrap=True)
-        if picking_type_id:
-            return {"picking_type_id": picking_type_id.id}
+        remote_picking_type = _safe_value(record, "picking_type_id", False)
+        if not remote_picking_type:
+            return {}
+
+        # Optional binding model: not always installed in every connector setup.
+        if "odoo.stock.picking.type" in self.env.registry.models:
+            binder = self.binder_for("odoo.stock.picking.type")
+            mapped = binder.to_internal(remote_picking_type.id, unwrap=True)
+            if mapped:
+                return {"picking_type_id": mapped.id}
+
+        # Fallback to local stock.picking.type using stable identifiers.
+        code = _safe_value(remote_picking_type, "code", False)
+        if code:
+            local_type = self.env["stock.picking.type"].search([("code", "=", code)], limit=1)
+            if local_type:
+                return {"picking_type_id": local_type.id}
+
+        name = _safe_value(remote_picking_type, "name", False)
+        if name:
+            local_type = self.env["stock.picking.type"].search([("name", "=", name)], limit=1)
+            if local_type:
+                return {"picking_type_id": local_type.id}
+
+        _logger.warning(
+            "Skipping purchase order picking_type_id mapping for external record %s: "
+            "no local picking type match found.",
+            _safe_value(record, "id", "n/a"),
+        )
+        return {}
 
 
 class PurchaseOrderLineBatchImporter(Component):
