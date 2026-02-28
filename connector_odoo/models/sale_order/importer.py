@@ -263,18 +263,28 @@ class SaleOrderLineImportMapper(Component):
         row = self.env.cr.fetchone()
         return row[0] if row else False
 
+    def _extract_external_id(self, record, field_name):
+        value = getattr(record, field_name, False)
+        if not value:
+            return False
+        value_id = getattr(value, "id", False)
+        if callable(value_id):
+            return False
+        return value_id or False
+
     @mapping
     def product_id(self, record):
-        if not getattr(record, "product_id", False):
+        external_product_id = self._extract_external_id(record, "product_id")
+        if not external_product_id:
             return {}
-        odoo_id = self._lookup_odoo_id("odoo_product_product", record.product_id.id)
+        odoo_id = self._lookup_odoo_id("odoo_product_product", external_product_id)
         if not odoo_id:
             _logger.warning(
                 "Skipping product_id mapping for sale line %s: missing product binding "
                 "for backend %s external product %s",
                 getattr(record, "id", "n/a"),
                 self.backend_record.id,
-                record.product_id.id,
+                external_product_id,
             )
             return {}
         return {
@@ -283,14 +293,17 @@ class SaleOrderLineImportMapper(Component):
 
     @mapping
     def order_id(self, record):
-        odoo_id = self._lookup_odoo_id("odoo_sale_order", record.order_id.id)
+        external_order_id = self._extract_external_id(record, "order_id")
+        if not external_order_id:
+            return {}
+        odoo_id = self._lookup_odoo_id("odoo_sale_order", external_order_id)
         if not odoo_id:
             _logger.warning(
                 "Skipping order_id mapping for sale line %s: missing sale order binding "
                 "for backend %s external order %s",
                 getattr(record, "id", "n/a"),
                 self.backend_record.id,
-                record.order_id.id,
+                external_order_id,
             )
             return {}
         return {
@@ -299,16 +312,17 @@ class SaleOrderLineImportMapper(Component):
 
     @mapping
     def product_uom(self, record):
-        if not getattr(record, "product_uom", False):
+        external_uom_id = self._extract_external_id(record, "product_uom")
+        if not external_uom_id:
             return {}
-        odoo_id = self._lookup_odoo_id("odoo_uom_uom", record.product_uom.id)
+        odoo_id = self._lookup_odoo_id("odoo_uom_uom", external_uom_id)
         if not odoo_id:
             _logger.warning(
                 "Skipping product_uom mapping for sale line %s: missing UoM binding "
                 "for backend %s external UoM %s",
                 getattr(record, "id", "n/a"),
                 self.backend_record.id,
-                record.product_uom.id,
+                external_uom_id,
             )
             return {}
         return {
