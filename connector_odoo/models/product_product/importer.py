@@ -60,18 +60,40 @@ class ProductImportMapper(Component):
     def odoo_id(self, record):
         # If product was imported or created yet (manually or by another connector)
         binder = self.binder_for("odoo.product.product")
-        if binder.to_internal(record.id, unwrap=True):
-            return {"odoo_id": record.id}
-        product_id = self.env["product.product"].search(
-            [("default_code", "=", record.default_code)]
-        )
-        if product_id:
-            return {"odoo_id": product_id.id}
+        local_product = binder.to_internal(record.id, unwrap=True)
+        if local_product:
+            return {"odoo_id": local_product.id}
+
+        default_code = record.default_code if hasattr(record, "default_code") else False
+        if default_code:
+            product_ids = self.env["product.product"].search(
+                [("default_code", "=", default_code)], limit=2
+            )
+            if len(product_ids) == 1:
+                return {"odoo_id": product_ids.id}
+            if len(product_ids) > 1:
+                _logger.warning(
+                    "Skip match for product %s: default_code %s has "
+                    "multiple local products %s",
+                    record.id,
+                    default_code,
+                    product_ids.ids,
+                )
         barcode = self.barcode(record)["barcode"]
         if barcode:
-            product_id = self.env["product.product"].search([("barcode", "=", barcode)])
-            if product_id:
-                return {"odoo_id": product_id.id}
+            product_ids = self.env["product.product"].search(
+                [("barcode", "=", barcode)], limit=2
+            )
+            if len(product_ids) == 1:
+                return {"odoo_id": product_ids.id}
+            if len(product_ids) > 1:
+                _logger.warning(
+                    "Skip match for product %s: barcode %s has "
+                    "multiple local products %s",
+                    record.id,
+                    barcode,
+                    product_ids.ids,
+                )
         return {}
 
     @mapping
