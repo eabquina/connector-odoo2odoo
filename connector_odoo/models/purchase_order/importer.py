@@ -9,6 +9,13 @@ from odoo.addons.connector.components.mapper import mapping, only_create
 _logger = logging.getLogger(__name__)
 
 
+def _safe_value(record, name, default=False):
+    value = getattr(record, name, default)
+    if callable(value):
+        return default
+    return value
+
+
 class PurchaseOrderBatchImporter(Component):
     """Import the Odoo Purchase Orders.
 
@@ -50,23 +57,24 @@ class PurchaseOrderImporter(Component):
 
     def _import_dependencies(self, force=False):
         """Import the dependencies for the record"""
-        self._import_dependency(
-            self.odoo_record.partner_id.id, "odoo.res.partner", force=force
-        )
-        if (
-            hasattr(self.odoo_record, "pricelist_id")
-            and self.odoo_record.pricelist_id
-            and self.odoo_record.pricelist_id.currency_id
-        ):
+        partner = _safe_value(self.odoo_record, "partner_id", False)
+        if partner and getattr(partner, "id", False):
             self._import_dependency(
-                self.odoo_record.pricelist_id.currency_id.id,
-                "odoo.res.currency",
-                force=False,
+                partner.id, "odoo.res.partner", force=force
             )
-        if hasattr(self.odoo_record, "currency_id") and self.odoo_record.currency_id:
+
+        pricelist = _safe_value(self.odoo_record, "pricelist_id", False)
+        pricelist_currency = False
+        if pricelist:
+            pricelist_currency = _safe_value(pricelist, "currency_id", False)
+        if pricelist_currency and getattr(pricelist_currency, "id", False):
             self._import_dependency(
-                self.odoo_record.currency_id.id, "odoo.res.currency", force=False
+                pricelist_currency.id, "odoo.res.currency", force=False
             )
+
+        currency = _safe_value(self.odoo_record, "currency_id", False)
+        if currency and getattr(currency, "id", False):
+            self._import_dependency(currency.id, "odoo.res.currency", force=False)
 
     def _after_import(self, binding, force=False):
         res = super()._after_import(binding, force)
