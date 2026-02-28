@@ -103,12 +103,25 @@ class StockPickingImporter(Component):
                 move_id = move
                 break
             mapper = self.component(usage="import.mapper")
-            picking_type_id = mapper.get_picking_type_from_external_locations(
-                "picking", record, move_id.location_id, move_id.location_dest_id
-            )
-            existing_picking_id = sale_id.picking_ids.filtered(
-                lambda x: x.picking_type_id == picking_type_id
-            )
+            existing_picking_id = self.env["stock.picking"]
+            try:
+                picking_type_id = mapper.get_picking_type_from_external_locations(
+                    "picking", record, move_id.location_id, move_id.location_dest_id
+                )
+                existing_picking_id = sale_id.picking_ids.filtered(
+                    lambda x: x.picking_type_id == picking_type_id
+                )
+            except ValidationError:
+                # Fallback: when no picking type mapping can be resolved, try to
+                # bind to the already created sale picking by exact name.
+                if getattr(record, "name", False):
+                    existing_picking_id = sale_id.picking_ids.filtered(
+                        lambda x: x.name == record.name
+                    )
+                if not existing_picking_id and getattr(record, "origin", False):
+                    existing_picking_id = sale_id.picking_ids.filtered(
+                        lambda x: x.origin == record.origin
+                    )
             if existing_picking_id:
                 return self.env["odoo.stock.picking"].create(
                     {
@@ -164,12 +177,23 @@ class OdooPickingMapper(Component):
                 for move in record.move_lines:
                     move_id = move
                     break
-                picking_type_id = self.get_picking_type_from_external_locations(
-                    "picking", record, move_id.location_id, move_id.location_dest_id
-                )
-                existing_picking_id = sale_id.picking_ids.filtered(
-                    lambda x: x.picking_type_id == picking_type_id
-                )
+                existing_picking_id = self.env["stock.picking"]
+                try:
+                    picking_type_id = self.get_picking_type_from_external_locations(
+                        "picking", record, move_id.location_id, move_id.location_dest_id
+                    )
+                    existing_picking_id = sale_id.picking_ids.filtered(
+                        lambda x: x.picking_type_id == picking_type_id
+                    )
+                except ValidationError:
+                    if getattr(record, "name", False):
+                        existing_picking_id = sale_id.picking_ids.filtered(
+                            lambda x: x.name == record.name
+                        )
+                    if not existing_picking_id and getattr(record, "origin", False):
+                        existing_picking_id = sale_id.picking_ids.filtered(
+                            lambda x: x.origin == record.origin
+                        )
                 if existing_picking_id:
                     return {"odoo_id": existing_picking_id.id}
         return {}
