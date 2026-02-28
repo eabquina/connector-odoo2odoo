@@ -94,6 +94,21 @@ class StockPickingImporter(Component):
         if binding:
             return binding
         record = self.odoo_record
+        mapper = self.component(usage="import.mapper")
+
+        # Reuse existing binding when mapper already resolved a local picking.
+        mapped_odoo_id = mapper.odoo_id(record).get("odoo_id")
+        if mapped_odoo_id:
+            existing_binding = self.env["odoo.stock.picking"].search(
+                [
+                    ("backend_id", "=", self.backend_record.id),
+                    ("odoo_id", "=", mapped_odoo_id),
+                ],
+                limit=1,
+            )
+            if existing_binding:
+                return existing_binding
+
         if record.sale_id and record.move_lines:
             # If picking is created when changing state importing of sale order
             binder = self.binder_for("odoo.sale.order")
@@ -102,7 +117,6 @@ class StockPickingImporter(Component):
             for move in record.move_lines:
                 move_id = move
                 break
-            mapper = self.component(usage="import.mapper")
             existing_picking_id = self.env["stock.picking"]
             try:
                 picking_type_id = mapper.get_picking_type_from_external_locations(
@@ -123,6 +137,15 @@ class StockPickingImporter(Component):
                         lambda x: x.origin == record.origin
                     )
             if existing_picking_id:
+                existing_binding = self.env["odoo.stock.picking"].search(
+                    [
+                        ("backend_id", "=", self.backend_record.id),
+                        ("odoo_id", "=", existing_picking_id.id),
+                    ],
+                    limit=1,
+                )
+                if existing_binding:
+                    return existing_binding
                 return self.env["odoo.stock.picking"].create(
                     {
                         "odoo_id": existing_picking_id.id,
