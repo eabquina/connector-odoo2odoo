@@ -8,6 +8,7 @@ from odoo import _, fields
 from odoo.exceptions import UserError
 
 from odoo.addons.component.core import AbstractComponent
+from odoo.addons.connector.exception import IDMissingInBackend
 
 _logger = logging.getLogger(__name__)
 
@@ -279,9 +280,18 @@ class GenericAdapter(AbstractComponent):
         model = (
             odoo_api.env[ext_model]
         )
-        if context:
-            return model.with_context(**context).browse(arguments)
-        return model.browse(arguments)
+        try:
+            if context:
+                return model.with_context(**context).browse(arguments)
+            return model.browse(arguments)
+        except odoorpc.error.RPCError as exc:
+            _logger.warning(
+                "Skipping unreadable remote record %s(%s): %s",
+                ext_model,
+                id,
+                exc,
+            )
+            raise IDMissingInBackend from exc
 
     def create(self, data):
         ext_model = self._odoo_model
