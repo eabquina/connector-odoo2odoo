@@ -393,13 +393,5 @@ class DelayedBatchImporter(AbstractComponent):
 
     def _import_record(self, external_id, job_options=None, **kwargs):
         """Delay the import of the records"""
-        options = dict(job_options or {})
-        if "identity_key" not in options:
-            # Prevent queue flooding with duplicated import jobs for the same
-            # backend/model/external_id payload.
-            kwargs_key = ",".join(f"{k}={v}" for k, v in sorted(kwargs.items()))
-            options["identity_key"] = (
-                f"import:{self.model._name}:{self.backend_record.id}:{external_id}:{kwargs_key}"
-            )
-        delayable = self.model.with_delay(**options)
+        delayable = self.model.with_delay(**job_options or {})
         delayable.import_record(self.backend_record, external_id, **kwargs)
