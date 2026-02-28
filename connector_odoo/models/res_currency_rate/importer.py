@@ -69,13 +69,9 @@ class CurrencyImporter(Component):
     _apply_on = "odoo.res.currency.rate"
 
     def _init_import(self, binding, external_id):
-        rate_ids = self.backend_adapter.search(
-            [("currency_id", "=", external_id)], order="id desc"
-        )
-        if not rate_ids:
-            # Compatibility fallback for adapters that do not proxy search kwargs.
-            currency_rate = self.work.odoo_api.env["res.currency.rate"]
-            rate_ids = currency_rate.search([("currency_id", "=", external_id)])
+        rate_ids = self.backend_adapter.search([("currency_id", "=", external_id)]) or []
+        # Keep newest rates first without relying on backend-specific search kwargs.
+        rate_ids = sorted(rate_ids, reverse=True)
         total = len(rate_ids)
         _logger.info(
             "{} Currency rates found for external currency {}".format(
