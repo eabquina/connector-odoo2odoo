@@ -37,27 +37,56 @@ class OdooStockPicking(models.Model):
 
     @api.model_create_multi
     def create(self, vals_list):
-        try:
-            with self.env.cr.savepoint():
-                return super().create(vals_list)
-        except IntegrityError:
-            # Race-safe fallback for unique(backend_id, odoo_id).
-            recordset = self.browse()
-            for vals in vals_list:
-                backend_id = vals.get("backend_id")
-                odoo_id = vals.get("odoo_id")
+        recordset = self.browse()
+        regular_vals = []
+
+        for vals in vals_list:
+            backend_id = vals.get("backend_id")
+            odoo_id = vals.get("odoo_id")
+
+            # Existing stock.picking must not be updated through _inherits on create.
+            if backend_id and odoo_id:
                 existing = self.search(
-                    [
-                        ("backend_id", "=", backend_id),
-                        ("odoo_id", "=", odoo_id),
-                    ],
+                    [("backend_id", "=", backend_id), ("odoo_id", "=", odoo_id)],
                     limit=1,
                 )
                 if existing:
                     recordset |= existing
                     continue
-                raise
-            return recordset
+
+                external_id = vals.get("external_id", -1)
+                backend_state = vals.get("backend_state")
+                uid = self.env.uid
+                try:
+                    with self.env.cr.savepoint():
+                        self.env.cr.execute(
+                            f"""
+                            INSERT INTO {self._table}
+                                (backend_id, external_id, odoo_id, backend_state, create_uid, create_date, write_uid, write_date)
+                            VALUES
+                                (%s, %s, %s, %s, %s, NOW() AT TIME ZONE 'UTC', %s, NOW() AT TIME ZONE 'UTC')
+                            RETURNING id
+                            """,
+                            (backend_id, external_id, odoo_id, backend_state, uid, uid),
+                        )
+                        new_id = self.env.cr.fetchone()[0]
+                except IntegrityError:
+                    existing = self.search(
+                        [("backend_id", "=", backend_id), ("odoo_id", "=", odoo_id)],
+                        limit=1,
+                    )
+                    if existing:
+                        recordset |= existing
+                        continue
+                    raise
+
+                recordset |= self.browse(new_id)
+            else:
+                regular_vals.append(vals)
+
+        if regular_vals:
+            recordset |= super().create(regular_vals)
+        return recordset
 
     def _compute_import_state(self):
         for picking_id in self:
