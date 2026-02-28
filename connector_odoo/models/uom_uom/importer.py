@@ -122,3 +122,28 @@ class UoMImporter(Component):
     _name = "odoo.uom.uom.importer"
     _inherit = "odoo.importer"
     _apply_on = "odoo.uom.uom"
+
+    _protected_existing_uom_fields = {"factor", "factor_inv"}
+
+    def _strip_protected_uom_fields(self, values, existing_odoo_id=False):
+        """Avoid forbidden ratio writes on already-used local UoM records."""
+        if not existing_odoo_id:
+            return values
+        sanitized = dict(values)
+        for field_name in self._protected_existing_uom_fields:
+            sanitized.pop(field_name, None)
+        return sanitized
+
+    def _create_data(self, map_record, **kwargs):
+        values = super()._create_data(map_record, **kwargs)
+        return self._strip_protected_uom_fields(
+            values, existing_odoo_id=bool(values.get("odoo_id"))
+        )
+
+    def _update_data(self, map_record, **kwargs):
+        values = super()._update_data(map_record, **kwargs)
+        binding = self.binder.to_internal(self.external_id)
+        existing_odoo_id = bool(binding and binding.odoo_id)
+        return self._strip_protected_uom_fields(
+            values, existing_odoo_id=existing_odoo_id
+        )
