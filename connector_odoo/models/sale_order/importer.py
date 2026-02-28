@@ -176,12 +176,14 @@ class SaleOrderLineImporter(Component):
     _apply_on = ["odoo.sale.order.line"]
 
     def _import_dependencies(self, force):
-        self._import_dependency(
-            self.odoo_record.product_id.id, "odoo.product.product", force=force
-        )
-        self._import_dependency(
-            self.odoo_record.product_uom.id, "odoo.uom.uom", force=force
-        )
+        if getattr(self.odoo_record, "product_id", False):
+            self._import_dependency(
+                self.odoo_record.product_id.id, "odoo.product.product", force=force
+            )
+        if getattr(self.odoo_record, "product_uom", False):
+            self._import_dependency(
+                self.odoo_record.product_uom.id, "odoo.uom.uom", force=force
+            )
 
     def _after_import(self, binding, force=False):
         res = super()._after_import(binding, force)
@@ -234,6 +236,8 @@ class SaleOrderLineImportMapper(Component):
 
     @mapping
     def product_id(self, record):
+        if not getattr(record, "product_id", False):
+            return {}
         odoo_id = self._lookup_odoo_id("odoo_product_product", record.product_id.id)
         if not odoo_id:
             raise MappingError(
@@ -258,6 +262,8 @@ class SaleOrderLineImportMapper(Component):
 
     @mapping
     def product_uom(self, record):
+        if not getattr(record, "product_uom", False):
+            return {}
         odoo_id = self._lookup_odoo_id("odoo_uom_uom", record.product_uom.id)
         if not odoo_id:
             raise MappingError(
