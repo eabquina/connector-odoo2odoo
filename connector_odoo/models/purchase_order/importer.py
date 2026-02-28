@@ -10,7 +10,10 @@ _logger = logging.getLogger(__name__)
 
 
 def _safe_value(record, name, default=False):
-    value = getattr(record, name, default)
+    try:
+        value = getattr(record, name, default)
+    except Exception:  # odoorpc can raise RPCError on broken remote fields/methods
+        return default
     if callable(value):
         return default
     return value
@@ -78,9 +81,10 @@ class PurchaseOrderImporter(Component):
 
     def _after_import(self, binding, force=False):
         res = super()._after_import(binding, force)
-        if self.odoo_record.order_line:
+        order_lines = _safe_value(self.odoo_record, "order_line", False) or []
+        if order_lines:
             delayed_line_ids = []
-            for line_id in self.odoo_record.order_line:
+            for line_id in order_lines:
                 purchase_order_line_model = self.env["odoo.purchase.order.line"]
                 if self.backend_record.delayed_import_lines:
                     purchase_order_line_model = purchase_order_line_model.with_delay()
