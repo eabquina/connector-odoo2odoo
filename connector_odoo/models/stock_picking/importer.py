@@ -190,6 +190,37 @@ class OdooPickingMapper(Component):
                 return by_code.picking_type_id
         return self.env["stock.picking.type"]
 
+    def _get_local_picking_type_fallback(
+        self, picking_type, source_location, dest_location, warehouse_id=False
+    ):
+        """Fallback to a unique local picking type when mapping table has no hit."""
+        if not picking_type:
+            return self.env["stock.picking.type"]
+
+        picking_types = self.env["stock.picking.type"].search([("code", "=", picking_type)])
+        if warehouse_id:
+            picking_types = picking_types.filtered(
+                lambda pt: pt.warehouse_id == warehouse_id
+            )
+        if len(picking_types) == 1:
+            return picking_types
+
+        if source_location:
+            picking_types = picking_types.filtered(
+                lambda pt: pt.default_location_src_id.usage == source_location.usage
+            )
+        if len(picking_types) == 1:
+            return picking_types
+
+        if dest_location:
+            picking_types = picking_types.filtered(
+                lambda pt: pt.default_location_dest_id.usage == dest_location.usage
+            )
+        if len(picking_types) == 1:
+            return picking_types
+
+        return self.env["stock.picking.type"]
+
     @mapping
     def odoo_id(self, record):
         if record.sale_id and record.move_lines:
@@ -258,6 +289,11 @@ class OdooPickingMapper(Component):
         if not picking_type_mapping_id:
             fallback_picking_type_id = self._get_sale_picking_type_fallback(
                 record, picking_type
+            )
+            if fallback_picking_type_id:
+                return fallback_picking_type_id
+            fallback_picking_type_id = self._get_local_picking_type_fallback(
+                picking_type, source_location, dest_location, warehouse_id
             )
             if fallback_picking_type_id:
                 return fallback_picking_type_id
