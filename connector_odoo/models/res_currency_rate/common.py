@@ -40,9 +40,7 @@ class OdooResCurrencyRate(models.Model):
 
     def import_rate(self, backend_record, rate_id, currency_id):
         _logger.info("Obtaining Currency rate {}".format(rate_id))
-        currency_rate_model = backend_record.get_connection().api.get(
-            "res.currency.rate"
-        )
+        currency_rate_model = backend_record.get_connection().env["res.currency.rate"]
         rate = currency_rate_model.browse(rate_id)
         currency_id = (
             self.env["odoo.res.currency"]

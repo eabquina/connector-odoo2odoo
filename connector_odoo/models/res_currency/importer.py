@@ -79,7 +79,11 @@ class CurrencyImporter(Component):
             "Importing Currency rates for external ID %s",
             self.external_id,
         )
-        self.env["odoo.res.currency.rate"].with_delay().import_record(
-            self.backend_record, self.external_id
+        identity_key = (
+            f"odoo.res.currency.rate.import_record:"
+            f"{self.backend_record.id}:{self.external_id}"
         )
+        self.env["odoo.res.currency.rate"].with_delay(
+            identity_key=identity_key
+        ).import_record(self.backend_record, self.external_id)
         return super()._after_import(binding, force)

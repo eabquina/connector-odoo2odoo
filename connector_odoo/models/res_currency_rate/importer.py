@@ -27,8 +27,12 @@ class ResCurrencyRateBatchImporter(Component):
         for external_id in external_ids:
             job_options = {
                 "priority": 15,
+                "identity_key": (
+                    f"odoo.res.currency.rate.import_record:"
+                    f"{self.backend_record.id}:{external_id}"
+                ),
             }
-            self._import_record(external_id, job_options=job_options)
+            self._import_record(external_id, job_options=job_options, force=force)
 
 
 class UomMapper(Component):
@@ -90,8 +94,12 @@ class CurrencyImporter(Component):
                         i, total
                     )
                 )
-                self.env["odoo.res.currency.rate"].with_delay().import_rate(
-                    self.backend_record, rate_id, external_id
+                identity_key = (
+                    f"odoo.res.currency.rate.import_rate:"
+                    f"{self.backend_record.id}:{rate_id}"
                 )
+                self.env["odoo.res.currency.rate"].with_delay(
+                    identity_key=identity_key
+                ).import_rate(self.backend_record, rate_id, external_id)
         super()._init_import(binding, external_id)
         return False
