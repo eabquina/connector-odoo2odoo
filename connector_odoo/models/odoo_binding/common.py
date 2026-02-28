@@ -36,20 +36,28 @@ class OdooBinding(models.AbstractModel):
 
     @api.constrains("backend_id", "external_id")
     def unique_backend_external_id(self):
-        if self.external_id > 0:
-            count = self.env[self._name].search_count(
-                [
-                    ("backend_id", "=", self.backend_id.id),
-                    ("external_id", "=", self.external_id),
-                    ("id", "!=", self.id),
-                ]
+        for rec in self:
+            if rec.external_id <= 0:
+                continue
+            # Use direct SQL to avoid ORM flush side effects while validating
+            # the binding uniqueness.
+            self.env.cr.execute(
+                f"""
+                SELECT 1
+                  FROM {self._table}
+                 WHERE backend_id = %s
+                   AND external_id = %s
+                   AND id <> %s
+                 LIMIT 1
+                """,
+                (rec.backend_id.id, rec.external_id, rec.id or 0),
             )
-            if count > 0:
+            if self.env.cr.fetchone():
                 raise ValidationError(
                     _(
                         "A binding already exists with the same backend '{name}' "
                         "for the external id {external_id} of the model {_name}"
-                    ).format(self.backend_id.name, self.external_id, self._name)
+                    ).format(rec.backend_id.name, rec.external_id, rec._name)
                 )
 
     def resync(self):
