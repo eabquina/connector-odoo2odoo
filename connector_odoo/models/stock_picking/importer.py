@@ -162,6 +162,22 @@ class OdooPickingMapper(Component):
             return picking_type.strip().lower()
         return False
 
+    def _get_local_picking_fallback(self, record):
+        """Find an existing local picking by exact name/origin."""
+        if getattr(record, "name", False):
+            local_pickings = self.env["stock.picking"].search(
+                [("name", "=", record.name)], limit=2
+            )
+            if len(local_pickings) == 1:
+                return local_pickings
+        if getattr(record, "origin", False):
+            local_pickings = self.env["stock.picking"].search(
+                [("origin", "=", record.origin)], limit=2
+            )
+            if len(local_pickings) == 1:
+                return local_pickings
+        return self.env["stock.picking"]
+
     def _get_sale_picking_type_fallback(self, record, picking_type):
         """Fallback picking type from already imported local sale pickings."""
         if not getattr(record, "sale_id", False):
@@ -223,6 +239,9 @@ class OdooPickingMapper(Component):
 
     @mapping
     def odoo_id(self, record):
+        local_picking = self._get_local_picking_fallback(record)
+        if local_picking:
+            return {"odoo_id": local_picking.id}
         if record.sale_id and record.move_lines:
             binder = self.binder_for("odoo.stock.picking")
             picking_id = binder.to_internal(record.id, unwrap=True)
@@ -333,6 +352,9 @@ class OdooPickingMapper(Component):
     def picking_type_id(self, record):
         picking_binder = self.binder_for("odoo.stock.picking").to_internal(record["id"])
         if picking_binder:
+            return {}
+        local_picking = self._get_local_picking_fallback(record)
+        if local_picking:
             return {}
         if len(record["move_lines"]) <= 0:
             return {}
