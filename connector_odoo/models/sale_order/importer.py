@@ -6,6 +6,7 @@ import logging
 
 from odoo.addons.component.core import Component
 from odoo.addons.connector.components.mapper import mapping, only_create
+from odoo.addons.connector.exception import MappingError
 
 _logger = logging.getLogger(__name__)
 
@@ -216,23 +217,53 @@ class SaleOrderLineImportMapper(Component):
         ("discount", "discount"),
     ]
 
+    def _lookup_odoo_id(self, table, external_id):
+        self.env.cr.execute(
+            f"""
+            SELECT odoo_id
+              FROM {table}
+             WHERE backend_id = %s
+               AND external_id = %s
+             ORDER BY id DESC
+             LIMIT 1
+            """,
+            (self.backend_record.id, external_id),
+        )
+        row = self.env.cr.fetchone()
+        return row[0] if row else False
+
     @mapping
     def product_id(self, record):
-        binder = self.binder_for("odoo.product.product")
+        odoo_id = self._lookup_odoo_id("odoo_product_product", record.product_id.id)
+        if not odoo_id:
+            raise MappingError(
+                "Missing product binding for backend %s external product %s"
+                % (self.backend_record.id, record.product_id.id)
+            )
         return {
-            "product_id": binder.to_internal(record.product_id.id, unwrap=True).id,
+            "product_id": odoo_id,
         }
 
     @mapping
     def order_id(self, record):
-        binder = self.binder_for("odoo.sale.order")
+        odoo_id = self._lookup_odoo_id("odoo_sale_order", record.order_id.id)
+        if not odoo_id:
+            raise MappingError(
+                "Missing sale order binding for backend %s external order %s"
+                % (self.backend_record.id, record.order_id.id)
+            )
         return {
-            "order_id": binder.to_internal(record.order_id.id, unwrap=True).id,
+            "order_id": odoo_id,
         }
 
     @mapping
     def product_uom(self, record):
-        binder = self.binder_for("odoo.uom.uom")
+        odoo_id = self._lookup_odoo_id("odoo_uom_uom", record.product_uom.id)
+        if not odoo_id:
+            raise MappingError(
+                "Missing UoM binding for backend %s external UoM %s"
+                % (self.backend_record.id, record.product_uom.id)
+            )
         return {
-            "product_uom": binder.to_internal(record.product_uom.id, unwrap=True).id,
+            "product_uom": odoo_id,
         }
