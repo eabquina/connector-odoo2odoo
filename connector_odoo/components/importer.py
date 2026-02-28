@@ -16,6 +16,8 @@ are already bound, to update the last sync date.
 
 import logging
 
+from psycopg2 import IntegrityError
+
 from odoo import _, fields
 
 from odoo.addons.component.core import AbstractComponent
@@ -196,8 +198,35 @@ class OdooImporter(AbstractComponent):
         self._validate_data(data)
         context = {**{"connector_no_export": True}, **self._get_context(data)}
         model = self.model.with_context(context)
-
-        binding = model.create(data)
+        try:
+            with self.env.cr.savepoint():
+                binding = model.create(data)
+        except IntegrityError:
+            # Race-safe fallback for bindings unique on (backend_id, odoo_id).
+            backend_id = data.get("backend_id")
+            odoo_id = data.get("odoo_id")
+            if (
+                backend_id
+                and odoo_id
+                and "backend_id" in model._fields
+                and "odoo_id" in model._fields
+            ):
+                existing_binding = model.search(
+                    [
+                        ("backend_id", "=", backend_id),
+                        ("odoo_id", "=", odoo_id),
+                    ],
+                    limit=1,
+                )
+                if existing_binding:
+                    _logger.warning(
+                        "Reusing existing binding %s for backend_id=%s odoo_id=%s",
+                        existing_binding.id,
+                        backend_id,
+                        odoo_id,
+                    )
+                    return existing_binding
+            raise
         _logger.debug("%d created from Odoo %s", binding, self.external_id)
         return binding
 
