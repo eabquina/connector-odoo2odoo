@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+webhook_url="$(git config --get connector-odoo.deploywebhookurl || true)"
+if [ -z "${webhook_url}" ]; then
+    exit 0
+fi
+
+if ! command -v curl >/dev/null 2>&1; then
+    printf "post-commit: curl is not installed, skipping deploy webhook.\n" >&2
+    exit 0
+fi
+
+if ! curl --silent --show-error --fail --max-time 15 -X POST "${webhook_url}" >/dev/null; then
+    printf "post-commit: deploy webhook failed for commit %s\n" "$(git rev-parse --short HEAD)" >&2
+fi

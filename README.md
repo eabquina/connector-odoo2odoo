@@ -11,6 +11,18 @@
 
 TODO: add repo description.
 
+## Local Auto Deploy Webhook
+
+Run these commands once in your local clone:
+
+```bash
+git config core.hooksPath .githooks
+git config connector-odoo.deploywebhookurl "https://your-webhook-url"
+```
+
+When `connector-odoo.deploywebhookurl` is configured, each local `git commit`
+triggers a POST request from `.githooks/post-commit`.
+
 <!-- /!\ do not modify below this line -->
 
 <!-- prettier-ignore-start -->
