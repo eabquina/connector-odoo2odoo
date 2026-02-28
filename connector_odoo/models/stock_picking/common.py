@@ -3,7 +3,9 @@
 
 import logging
 
-from odoo import _, fields, models
+from psycopg2 import IntegrityError
+
+from odoo import _, api, fields, models
 from odoo.exceptions import ValidationError
 
 from odoo.addons.component.core import Component
@@ -32,6 +34,30 @@ class OdooStockPicking(models.Model):
             "External ID (external_id) must be unique!",
         ),
     ]
+
+    @api.model_create_multi
+    def create(self, vals_list):
+        try:
+            with self.env.cr.savepoint():
+                return super().create(vals_list)
+        except IntegrityError:
+            # Race-safe fallback for unique(backend_id, odoo_id).
+            recordset = self.browse()
+            for vals in vals_list:
+                backend_id = vals.get("backend_id")
+                odoo_id = vals.get("odoo_id")
+                existing = self.search(
+                    [
+                        ("backend_id", "=", backend_id),
+                        ("odoo_id", "=", odoo_id),
+                    ],
+                    limit=1,
+                )
+                if existing:
+                    recordset |= existing
+                    continue
+                raise
+            return recordset
 
     def _compute_import_state(self):
         for picking_id in self:
