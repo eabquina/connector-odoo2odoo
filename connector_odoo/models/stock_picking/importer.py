@@ -127,6 +127,28 @@ class OdooPickingMapper(Component):
 
     direct = [("name", "name"), ("origin", "origin"), ("state", "backend_state")]
 
+    def _get_external_picking_type(self, record):
+        """Return a normalized picking type code from external picking."""
+        picking_type = False
+        for field_name in ("picking_type_code", "type"):
+            value = getattr(record, field_name, False)
+            if value and not callable(value):
+                picking_type = value
+                break
+
+        if (
+            not picking_type
+            and getattr(record, "picking_type_id", False)
+            and not callable(record.picking_type_id)
+        ):
+            code = getattr(record.picking_type_id, "code", False)
+            if code and not callable(code):
+                picking_type = code
+
+        if isinstance(picking_type, str):
+            return picking_type.strip().lower()
+        return False
+
     @mapping
     def odoo_id(self, record):
         if record.sale_id and record.move_lines:
@@ -156,18 +178,26 @@ class OdooPickingMapper(Component):
         self, model_label, record, location_id, location_dest_id
     ):
         binder = self.binder_for("odoo.stock.location")
-        location_id = binder.to_internal(location_id.id, unwrap=True)
-        warehouse_id = location_id.warehouse_id
-        if not warehouse_id:
-            location_id = binder.to_internal(location_dest_id.id, unwrap=True)
-            warehouse_id = location_id.warehouse_id
+        source_location = binder.to_internal(location_id.id, unwrap=True)
+        dest_location = binder.to_internal(location_dest_id.id, unwrap=True)
+        warehouse_id = source_location.warehouse_id or dest_location.warehouse_id
+        picking_type = self._get_external_picking_type(record)
+        warehouse_ref = warehouse_id.id if warehouse_id else False
+        warehouse_name = warehouse_id.name if warehouse_id else False
 
-        picking_type_mapping_id = self.env["openerp.picking.type"].search(
-            [
-                ("warehouse_id.odoo_id.id", "=", warehouse_id.id),
-                ("type", "=", record["type"]),
-            ]
-        )
+        domain = [("type", "=", picking_type)]
+        if warehouse_id:
+            domain.append(("warehouse_id.odoo_id.id", "=", warehouse_id.id))
+        picking_type_mapping_id = self.env["openerp.picking.type"].search(domain)
+        if len(picking_type_mapping_id) != 1:
+            picking_type_mapping_id = picking_type_mapping_id.filtered(
+                lambda x: x.origin_location_usage == source_location.usage
+            )
+        if len(picking_type_mapping_id) != 1:
+            picking_type_mapping_id = picking_type_mapping_id.filtered(
+                lambda x: x.dest_location_usage == dest_location.usage
+            )
+
         if not picking_type_mapping_id:
             raise ValidationError(
                 _(
@@ -176,22 +206,29 @@ class OdooPickingMapper(Component):
                     "Please go to configuration connector picking type mapping "
                     "and include warehouse and type char field value"
                 ).format(
-                    warehouse_id.id,
-                    warehouse_id.name,
-                    record["type"],
+                    warehouse_ref,
+                    warehouse_name,
+                    picking_type,
                     model_label,
                     record["id"],
                     record["name"],
                 )
             )
-        if len(picking_type_mapping_id) != 1:
-            picking_type_mapping_id = picking_type_mapping_id.filtered(
-                lambda x: x.origin_location_usage == location_id.usage
-            )
-            if len(picking_type_mapping_id) != 1:
-                picking_type_mapping_id = picking_type_mapping_id.filtered(
-                    lambda x: x.dest_location_usage == location_dest_id.usage
+        if len(picking_type_mapping_id) > 1:
+            raise ValidationError(
+                _(
+                    "Multiple picking type mappings found for warehouse {}-{} "
+                    "and type {} from {} {}-{}. "
+                    "Please keep only one matching connector picking type mapping."
+                ).format(
+                    warehouse_ref,
+                    warehouse_name,
+                    picking_type,
+                    model_label,
+                    record["id"],
+                    record["name"],
                 )
+            )
         return picking_type_mapping_id.picking_type_id
 
     @mapping
