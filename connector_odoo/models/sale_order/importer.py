@@ -6,7 +6,6 @@ import logging
 
 from odoo.addons.component.core import Component
 from odoo.addons.connector.components.mapper import mapping, only_create
-from odoo.addons.connector.exception import MappingError
 
 _logger = logging.getLogger(__name__)
 
@@ -270,10 +269,14 @@ class SaleOrderLineImportMapper(Component):
             return {}
         odoo_id = self._lookup_odoo_id("odoo_product_product", record.product_id.id)
         if not odoo_id:
-            raise MappingError(
-                "Missing product binding for backend %s external product %s"
-                % (self.backend_record.id, record.product_id.id)
+            _logger.warning(
+                "Skipping product_id mapping for sale line %s: missing product binding "
+                "for backend %s external product %s",
+                getattr(record, "id", "n/a"),
+                self.backend_record.id,
+                record.product_id.id,
             )
+            return {}
         return {
             "product_id": odoo_id,
         }
@@ -282,10 +285,14 @@ class SaleOrderLineImportMapper(Component):
     def order_id(self, record):
         odoo_id = self._lookup_odoo_id("odoo_sale_order", record.order_id.id)
         if not odoo_id:
-            raise MappingError(
-                "Missing sale order binding for backend %s external order %s"
-                % (self.backend_record.id, record.order_id.id)
+            _logger.warning(
+                "Skipping order_id mapping for sale line %s: missing sale order binding "
+                "for backend %s external order %s",
+                getattr(record, "id", "n/a"),
+                self.backend_record.id,
+                record.order_id.id,
             )
+            return {}
         return {
             "order_id": odoo_id,
         }
@@ -296,10 +303,14 @@ class SaleOrderLineImportMapper(Component):
             return {}
         odoo_id = self._lookup_odoo_id("odoo_uom_uom", record.product_uom.id)
         if not odoo_id:
-            raise MappingError(
-                "Missing UoM binding for backend %s external UoM %s"
-                % (self.backend_record.id, record.product_uom.id)
+            _logger.warning(
+                "Skipping product_uom mapping for sale line %s: missing UoM binding "
+                "for backend %s external UoM %s",
+                getattr(record, "id", "n/a"),
+                self.backend_record.id,
+                record.product_uom.id,
             )
+            return {}
         return {
             "product_uom": odoo_id,
         }
