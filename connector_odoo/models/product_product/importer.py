@@ -209,6 +209,28 @@ class ProductImporter(Component):
     _inherit = "odoo.importer"
     _apply_on = ["odoo.product.product"]
 
+    def _get_binding_odoo_id_changed(self, binding):
+        if binding:
+            return binding
+
+        local_product_vals = self.component(usage="import.mapper").odoo_id(
+            self.odoo_record
+        )
+        local_product_id = local_product_vals.get("odoo_id")
+        if not local_product_id:
+            return binding
+
+        existing_binding = self.env["odoo.product.product"].search(
+            [
+                ("backend_id", "=", self.backend_record.id),
+                ("odoo_id", "=", local_product_id),
+            ],
+            limit=1,
+        )
+        if existing_binding:
+            return existing_binding
+        return binding
+
     def _import_dependencies(self, force=False):
         if self.backend_record.work_with_variants:
             product_tmpl_id = self.odoo_record.product_tmpl_id
