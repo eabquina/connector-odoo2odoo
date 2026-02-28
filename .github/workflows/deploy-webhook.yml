@@ -1,0 +1,22 @@
+name: deploy-webhook
+
+on:
+  push:
+    branches:
+      - "18.0"
+  workflow_dispatch:
+
+jobs:
+  notify-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger deploy webhook
+        env:
+          WEBHOOK_URL: ${{ secrets.ODOO_DEPLOY_WEBHOOK_URL }}
+        run: |
+          if [ -z "${WEBHOOK_URL}" ]; then
+              echo "ODOO_DEPLOY_WEBHOOK_URL is not set; skipping deploy webhook."
+              exit 0
+          fi
+          curl --silent --show-error --fail --max-time 30 \
+              -X POST "${WEBHOOK_URL}"

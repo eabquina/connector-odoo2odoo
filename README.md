@@ -23,6 +23,16 @@ git config connector-odoo.deploywebhookurl "https://your-webhook-url"
 When `connector-odoo.deploywebhookurl` is configured, each local `git commit`
 triggers a POST request from `.githooks/post-commit`.
 
+## GitHub Actions Auto Deploy Webhook
+
+The repository includes `.github/workflows/deploy-webhook.yml` which triggers on
+push to `18.0` and posts to a webhook URL from a GitHub secret.
+
+Set this repository secret in GitHub:
+
+- Name: `ODOO_DEPLOY_WEBHOOK_URL`
+- Value: your full deploy webhook URL
+
 <!-- /!\ do not modify below this line -->
 
 <!-- prettier-ignore-start -->
