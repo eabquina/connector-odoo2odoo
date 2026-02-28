@@ -94,6 +94,13 @@ class ProductImportMapper(Component):
                     barcode,
                     product_ids.ids,
                 )
+        if self.backend_record.work_with_variants and getattr(record, "product_tmpl_id", False):
+            template_binder = self.binder_for("odoo.product.template")
+            local_template = template_binder.to_internal(
+                record.product_tmpl_id.id, unwrap=True
+            )
+            if local_template and len(local_template.product_variant_ids) == 1:
+                return {"odoo_id": local_template.product_variant_ids.id}
         return {}
 
     @mapping
