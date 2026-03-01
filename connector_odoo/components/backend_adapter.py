@@ -284,7 +284,12 @@ class GenericAdapter(AbstractComponent):
             if context:
                 return model.with_context(**context).browse(arguments)
             return model.browse(arguments)
-        except odoorpc.error.RPCError as exc:
+        except (odoorpc.error.RPCError, ValueError) as exc:
+            if isinstance(exc, ValueError):
+                # odoorpc raises ValueError when browsing a deleted/missing id.
+                msg = str(exc)
+                if "There is no" not in msg or "record with IDs" not in msg:
+                    raise
             _logger.warning(
                 "Skipping unreadable remote record %s(%s): %s",
                 ext_model,
