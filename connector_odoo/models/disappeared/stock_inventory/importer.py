@@ -27,10 +27,8 @@ class StockInventoryDisappearedBatchImporter(Component):
 
     def run(self, filters=None, force=False):
         """Run the synchronization"""
-        inventory_model = _remote_model(
-            self.backend_record.get_connection(), "stock.inventory"
-        )
-        external_ids = inventory_model.search(filters)
+        # Use backend adapter to normalize date/datetime values in filters.
+        external_ids = self.backend_adapter.search(filters, model="stock.inventory")
 
         _logger.info(
             "search for odoo stock inventory %s returned %s items",
