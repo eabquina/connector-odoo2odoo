@@ -463,12 +463,8 @@ class OdooBackend(models.Model):
             else:
                 from_date = None
             if model == "odoo.stock.location":
-                identity_key = (
-                    f"odoo.import_batch:{model}:backend:{backend.id}:{from_date_field}"
-                )
-                self.env[model].with_delay(
-                    identity_key=identity_key, priority=5
-                ).import_batch(backend, filters)
+                # Run stock location sync directly to avoid prepare-job queue blockage.
+                self.env[model].import_batch(backend, filters)
             else:
                 self.env[model].with_delay().import_batch(backend, filters)
 
