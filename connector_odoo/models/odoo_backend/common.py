@@ -462,7 +462,15 @@ class OdooBackend(models.Model):
                 )
             else:
                 from_date = None
-            self.env[model].with_delay().import_batch(backend, filters)
+            if model == "odoo.stock.location":
+                identity_key = (
+                    f"odoo.import_batch:{model}:backend:{backend.id}:{from_date_field}"
+                )
+                self.env[model].with_delay(
+                    identity_key=identity_key, priority=5
+                ).import_batch(backend, filters)
+            else:
+                self.env[model].with_delay().import_batch(backend, filters)
 
         next_time = import_start_time - timedelta(seconds=IMPORT_DELTA_BUFFER)
         self.write({from_date_field: next_time})
