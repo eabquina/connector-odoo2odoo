@@ -462,11 +462,7 @@ class OdooBackend(models.Model):
                 )
             else:
                 from_date = None
-            if model in ("odoo.metrotiles.series", "odoo.metrotiles.factory"):
-                # Execute directly so these models are not blocked by prepare-job queue backlog.
-                self.env[model].import_batch(backend, filters)
-            else:
-                self.env[model].with_delay().import_batch(backend, filters)
+            self.env[model].with_delay().import_batch(backend, filters)
 
         next_time = import_start_time - timedelta(seconds=IMPORT_DELTA_BUFFER)
         self.write({from_date_field: next_time})
