@@ -7,6 +7,13 @@ from odoo.addons.component.core import Component
 _logger = logging.getLogger(__name__)
 
 
+def _remote_model(connection, model_name):
+    remote_api = getattr(connection, "api", connection)
+    if hasattr(remote_api, "env"):
+        return remote_api.env[model_name]
+    return remote_api.get(model_name)
+
+
 class StockInventoryDisappearedBatchImporter(Component):
     """Import the Odoo Picking from Stock Inventory (OpenERP Model deprecated).
 
@@ -20,8 +27,8 @@ class StockInventoryDisappearedBatchImporter(Component):
 
     def run(self, filters=None, force=False):
         """Run the synchronization"""
-        inventory_model = self.backend_record.get_connection().api.get(
-            "stock.inventory"
+        inventory_model = _remote_model(
+            self.backend_record.get_connection(), "stock.inventory"
         )
         external_ids = inventory_model.search(filters)
 
@@ -47,7 +54,9 @@ class StockInventoryDisappearedImporter(Component):
 
     def import_stock_inventory(self, backend_record, inventory_id):
         _logger.info("Obtaining stock inventory {}".format(inventory_id))
-        inventory_model = backend_record.get_connection().api.get("stock.inventory")
+        inventory_model = _remote_model(
+            backend_record.get_connection(), "stock.inventory"
+        )
 
         inventory = inventory_model.browse(inventory_id)
         if len(inventory["move_ids"]) <= 0:
