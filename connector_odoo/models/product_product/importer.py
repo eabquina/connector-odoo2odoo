@@ -64,7 +64,7 @@ class ProductImportMapper(Component):
 
         default_code = record.default_code if hasattr(record, "default_code") else False
         if default_code:
-            product_ids = self.env["product.product"].search(
+            product_ids = self.env["product.product"].with_context(active_test=False).search(
                 [("default_code", "=", default_code)], limit=2
             )
             if len(product_ids) == 1:
@@ -79,7 +79,7 @@ class ProductImportMapper(Component):
                 )
         barcode = self.barcode(record)["barcode"]
         if barcode:
-            product_ids = self.env["product.product"].search(
+            product_ids = self.env["product.product"].with_context(active_test=False).search(
                 [("barcode", "=", barcode)], limit=2
             )
             if len(product_ids) == 1:
@@ -97,8 +97,10 @@ class ProductImportMapper(Component):
             local_template = template_binder.to_internal(
                 record.product_tmpl_id.id, unwrap=True
             )
-            if local_template and len(local_template.product_variant_ids) == 1:
-                return {"odoo_id": local_template.product_variant_ids.id}
+            if local_template:
+                variants = local_template.with_context(active_test=False).product_variant_ids
+                if len(variants) == 1:
+                    return {"odoo_id": variants.id}
         return {}
 
     @mapping
