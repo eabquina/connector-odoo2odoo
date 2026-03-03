@@ -5,7 +5,7 @@
 import logging
 
 from odoo.addons.component.core import Component
-from odoo.addons.connector.components.mapper import mapping
+from odoo.addons.connector.components.mapper import mapping, only_create
 from odoo.addons.connector.exception import MappingError
 
 _logger = logging.getLogger(__name__)
@@ -72,12 +72,14 @@ class ProductTemplateImportMapper(Component):
             return {"detailed_type": detailed_type}
         return {}
 
+    @only_create
     @mapping
     def uom_id(self, record):
         binder = self.binder_for("odoo.uom.uom")
         uom = binder.to_internal(record.uom_id.id, unwrap=True)
         return {"uom_id": uom.id}
 
+    @only_create
     @mapping
     def uom_po_id(self, record):
         binder = self.binder_for("odoo.uom.uom")
