@@ -206,7 +206,8 @@ class OdooImporter(AbstractComponent):
         try:
             with self.env.cr.savepoint():
                 binding = model.create(data)
-        except IntegrityError:
+        except IntegrityError as exc:
+            exc_str = str(exc)
             # Race-safe fallback for bindings unique on (backend_id, odoo_id).
             backend_id = data.get("backend_id")
             odoo_id = data.get("odoo_id")
@@ -231,6 +232,42 @@ class OdooImporter(AbstractComponent):
                         odoo_id,
                     )
                     return existing_binding
+            # Fallback for product_product_combination_unique: the local template
+            # already has an auto-created single variant (combination_indices='').
+            # Find that product.product and bind to it instead of creating a duplicate.
+            if "product_product_combination_unique" in exc_str and "odoo_id" in model._fields:
+                tmpl_id = data.get("product_tmpl_id")
+                if tmpl_id:
+                    existing_product = self.env["product.product"].with_context(
+                        active_test=False
+                    ).search(
+                        [("product_tmpl_id", "=", tmpl_id), ("combination_indices", "=", "")],
+                        limit=1,
+                    )
+                    if existing_product:
+                        _logger.warning(
+                            "Reusing existing product.product %s "
+                            "(product_tmpl_id=%s, combination_indices='') "
+                            "instead of creating duplicate during import of external_id=%s",
+                            existing_product.id,
+                            tmpl_id,
+                            self.external_id,
+                        )
+                        # Create the binding pointing to the existing product.
+                        bind_data = dict(data)
+                        bind_data["odoo_id"] = existing_product.id
+                        with self.env.cr.savepoint():
+                            existing_binding = model.search(
+                                [
+                                    ("backend_id", "=", backend_id),
+                                    ("odoo_id", "=", existing_product.id),
+                                ],
+                                limit=1,
+                            ) if backend_id else model.browse()
+                            if existing_binding:
+                                return existing_binding
+                            binding = model.create(bind_data)
+                            return binding
             raise
         _logger.debug("%d created from Odoo %s", binding, self.external_id)
         return binding
