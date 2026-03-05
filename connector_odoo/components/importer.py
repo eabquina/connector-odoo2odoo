@@ -15,6 +15,7 @@ are already bound, to update the last sync date.
 """
 
 import logging
+import urllib.error
 
 from psycopg2 import IntegrityError
 
@@ -30,6 +31,10 @@ if NothingToDoJob is None:
 if NothingToDoJob is None:
     class NothingToDoJob(Exception):
         pass
+
+RetryableJobError = getattr(queue_job_exception, "RetryableJobError", None)
+if RetryableJobError is None:
+    RetryableJobError = getattr(queue_job_exception, "JobError", Exception)
 
 _logger = logging.getLogger(__name__)
 
@@ -278,6 +283,17 @@ class OdooImporter(AbstractComponent):
 
         :param external_id: identifier of the record on Odoo
         """
+        try:
+            return self._run(external_id, force=force)
+        except (urllib.error.HTTPError, urllib.error.URLError) as err:
+            raise RetryableJobError(
+                "Transient network error communicating with remote Odoo: %s" % err,
+                seconds=60,
+                ignore_retry=False,
+            ) from err
+
+    def _run(self, external_id, force=False):
+        """Internal run — wrapped by run() for network-error retry."""
         lock_name = "import({}, {}, {}, {})".format(
             self.backend_record._name,
             self.backend_record.id,
