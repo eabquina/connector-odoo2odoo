@@ -101,6 +101,18 @@ class ProductImportMapper(Component):
                 variants = local_template.with_context(active_test=False).product_variant_ids
                 if len(variants) == 1:
                     return {"odoo_id": variants.id}
+        # Fallback: even without work_with_variants, if the local template already
+        # exists and has a single variant (e.g. auto-created by Odoo for no-attribute
+        # products), use it to avoid a product_product_combination_unique violation.
+        if not self.backend_record.work_with_variants and getattr(record, "product_tmpl_id", False):
+            template_binder = self.binder_for("odoo.product.template")
+            local_template = template_binder.to_internal(
+                record.product_tmpl_id.id, unwrap=True
+            )
+            if local_template:
+                variants = local_template.with_context(active_test=False).product_variant_ids
+                if len(variants) == 1:
+                    return {"odoo_id": variants.id}
         return {}
 
     @mapping
