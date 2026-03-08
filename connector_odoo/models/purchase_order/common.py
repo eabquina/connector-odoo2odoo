@@ -11,13 +11,6 @@ from odoo.addons.component_event.components.event import skip_if
 _logger = logging.getLogger(__name__)
 
 
-def _extract_remote_id(record):
-    record_id = getattr(record, "id", record)
-    if callable(record_id):
-        return False
-    return record_id or False
-
-
 class OdooPurchaseOrder(models.Model):
     _name = "odoo.purchase.order"
     _inherit = "odoo.binding"
@@ -93,22 +86,23 @@ class OdooPurchaseOrder(models.Model):
             job_id = self.env["queue.job"].search([("uuid", "=", job_info.uuid)])
             self.queue_job_ids = [(6, 0, [job_id.id])]
 
+    def _get_remote_order_line_ids(self):
+        self.ensure_one()
+        if self.external_id <= 0:
+            return []
+
+        with self.backend_id.work_on("odoo.purchase.order.line") as work:
+            adapter = work.component(usage="backend.adapter")
+            return adapter.search(
+                [("order_id", "=", self.external_id)],
+                order="id",
+            )
+
     def sync_order_lines(self):
         for binding in self:
-            if binding.external_id <= 0:
-                continue
-
-            with binding.backend_id.work_on(binding._name) as work:
-                adapter = work.component(usage="backend.adapter")
-                remote_order = adapter.read(binding.external_id)
-
-            remote_lines = getattr(remote_order, "order_line", False) or []
+            remote_line_ids = binding._get_remote_order_line_ids()
             delayed_line_ids = []
-            for remote_line in remote_lines:
-                remote_line_id = _extract_remote_id(remote_line)
-                if not remote_line_id:
-                    continue
-
+            for remote_line_id in remote_line_ids:
                 line_model = self.env["odoo.purchase.order.line"]
                 if binding.backend_id.delayed_import_lines:
                     line_model = line_model.with_delay()
@@ -128,7 +122,7 @@ class OdooPurchaseOrder(models.Model):
                         (6, 0, delayed_line_ids + binding.queue_job_ids.ids)
                     ]
             else:
-                if remote_lines:
+                if remote_line_ids:
                     self.env["odoo.stock.picking"].import_batch(
                         binding.backend_id,
                         [("purchase_id", "=", binding.external_id)],

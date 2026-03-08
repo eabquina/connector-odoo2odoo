@@ -4,6 +4,7 @@
 import logging
 
 from odoo.addons.component.core import Component
+from odoo.addons.connector.exception import IDMissingInBackend
 from odoo.addons.connector.components.mapper import mapping, only_create
 
 _logger = logging.getLogger(__name__)
@@ -17,6 +18,35 @@ def _safe_value(record, name, default=False):
     if callable(value):
         return default
     return value
+
+
+class _RemoteRelationValue:
+    def __init__(self, value):
+        self.id = value
+
+
+class _RemoteRecordValue:
+    def __init__(self, values):
+        self._values = {}
+        for key, value in values.items():
+            self._values[key] = self._wrap(value)
+
+    def _wrap(self, value):
+        if not value:
+            return value
+        if isinstance(value, tuple) and len(value) == 2:
+            return _RemoteRelationValue(value[0])
+        if isinstance(value, list):
+            if len(value) == 2 and isinstance(value[0], int):
+                return _RemoteRelationValue(value[0])
+            if value and all(isinstance(item, int) for item in value):
+                return [_RemoteRelationValue(item) for item in value]
+        return value
+
+    def __getattr__(self, name):
+        if name in self._values:
+            return self._values[name]
+        raise AttributeError(name)
 
 
 class PurchaseOrderBatchImporter(Component):
@@ -81,15 +111,15 @@ class PurchaseOrderImporter(Component):
 
     def _after_import(self, binding, force=False):
         res = super()._after_import(binding, force)
-        order_lines = _safe_value(self.odoo_record, "order_line", False) or []
-        if order_lines:
+        order_line_ids = binding._get_remote_order_line_ids()
+        if order_line_ids:
             delayed_line_ids = []
-            for line_id in order_lines:
+            for line_id in order_line_ids:
                 purchase_order_line_model = self.env["odoo.purchase.order.line"]
                 if self.backend_record.delayed_import_lines:
                     purchase_order_line_model = purchase_order_line_model.with_delay()
                 delayed_line_id = purchase_order_line_model.import_record(
-                    self.backend_record, line_id.id, force
+                    self.backend_record, line_id, force
                 )
                 if self.backend_record.delayed_import_lines:
                     delayed_line_id = self.env["queue.job"].search(
@@ -230,6 +260,44 @@ class PurchaseOrderLineImporter(Component):
     _name = "odoo.purchase.order.line.importer"
     _inherit = "odoo.importer"
     _apply_on = ["odoo.purchase.order.line"]
+
+    def _read_remote_fields(self, fields):
+        rows = self.work.odoo_api.api.execute_kw(
+            "purchase.order.line",
+            "read",
+            [[int(self.external_id)]],
+            {"fields": fields},
+        )
+        if isinstance(rows, dict):
+            rows = [rows]
+        if not rows:
+            raise IDMissingInBackend
+        return rows[0]
+
+    def _get_odoo_data(self):
+        data = self._read_remote_fields(
+            [
+                "id",
+                "name",
+                "price_unit",
+                "date_planned",
+                "display_type",
+                "order_id",
+                "product_id",
+                "product_uom",
+            ]
+        )
+        for quantity_field in ("product_qty", "product_uom_qty"):
+            try:
+                data.update(self._read_remote_fields([quantity_field]))
+            except Exception as exc:
+                _logger.warning(
+                    "Could not read %s for remote purchase.order.line %s: %s",
+                    quantity_field,
+                    self.external_id,
+                    exc,
+                )
+        return _RemoteRecordValue(data)
 
     def _import_dependencies(self, force):
         """Import the dependencies for the record"""
