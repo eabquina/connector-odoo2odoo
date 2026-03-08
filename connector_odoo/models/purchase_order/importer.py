@@ -233,12 +233,14 @@ class PurchaseOrderLineImporter(Component):
 
     def _import_dependencies(self, force):
         """Import the dependencies for the record"""
-        self._import_dependency(
-            self.odoo_record.product_id.id, "odoo.product.product", force=force
-        )
-        self._import_dependency(
-            self.odoo_record.product_uom.id, "odoo.uom.uom", force=force
-        )
+        if getattr(self.odoo_record, "product_id", False):
+            self._import_dependency(
+                self.odoo_record.product_id.id, "odoo.product.product", force=force
+            )
+        if getattr(self.odoo_record, "product_uom", False):
+            self._import_dependency(
+                self.odoo_record.product_uom.id, "odoo.uom.uom", force=force
+            )
 
     def _after_import(self, binding, force=False):
         res = super()._after_import(binding, force)
@@ -267,27 +269,103 @@ class PurchaseOrderLineImportMapper(Component):
     direct = [
         ("name", "name"),
         ("price_unit", "price_unit"),
-        ("product_uom_qty", "product_uom_qty"),
-        ("product_qty", "product_qty"),
         ("date_planned", "date_planned"),
         ("display_type", "display_type"),
     ]
 
+    def _lookup_odoo_id(self, table, external_id):
+        self.env.cr.execute(
+            f"""
+            SELECT odoo_id
+              FROM {table}
+             WHERE backend_id = %s
+               AND external_id = %s
+             ORDER BY id DESC
+             LIMIT 1
+            """,
+            (self.backend_record.id, external_id),
+        )
+        row = self.env.cr.fetchone()
+        return row[0] if row else False
+
+    def _extract_external_id(self, record, field_name):
+        value = _safe_value(record, field_name, False)
+        if not value:
+            return False
+        value_id = getattr(value, "id", False)
+        if callable(value_id):
+            return False
+        return value_id or False
+
     @mapping
     def order_id(self, record):
-        binder = self.binder_for("odoo.purchase.order")
-        return {"order_id": binder.to_internal(record.order_id.id, unwrap=True).id}
+        external_order_id = self._extract_external_id(record, "order_id")
+        if not external_order_id:
+            return {}
+        odoo_id = self._lookup_odoo_id("odoo_purchase_order", external_order_id)
+        if not odoo_id:
+            _logger.warning(
+                "Skipping order_id mapping for purchase line %s: missing purchase order binding "
+                "for backend %s external order %s",
+                getattr(record, "id", "n/a"),
+                self.backend_record.id,
+                external_order_id,
+            )
+            return {}
+        return {"order_id": odoo_id}
 
     @mapping
     def product_id(self, record):
-        binder = self.binder_for("odoo.product.product")
-        return {
-            "product_id": binder.to_internal(record.product_id.id, unwrap=True).id,
-        }
+        if _safe_value(record, "display_type", False):
+            return {}
+        external_product_id = self._extract_external_id(record, "product_id")
+        if not external_product_id:
+            return {}
+        odoo_id = self._lookup_odoo_id("odoo_product_product", external_product_id)
+        if not odoo_id:
+            _logger.warning(
+                "Skipping product_id mapping for purchase line %s: missing product binding "
+                "for backend %s external product %s",
+                getattr(record, "id", "n/a"),
+                self.backend_record.id,
+                external_product_id,
+            )
+            return {}
+        return {"product_id": odoo_id}
 
     @mapping
     def product_uom(self, record):
-        binder = self.binder_for("odoo.uom.uom")
-        return {
-            "product_uom": binder.to_internal(record.product_uom.id, unwrap=True).id,
-        }
+        if _safe_value(record, "display_type", False):
+            return {}
+        external_uom_id = self._extract_external_id(record, "product_uom")
+        if not external_uom_id:
+            return {}
+        odoo_id = self._lookup_odoo_id("odoo_uom_uom", external_uom_id)
+        if not odoo_id:
+            _logger.warning(
+                "Skipping product_uom mapping for purchase line %s: missing UoM binding "
+                "for backend %s external UoM %s",
+                getattr(record, "id", "n/a"),
+                self.backend_record.id,
+                external_uom_id,
+            )
+            return {}
+        return {"product_uom": odoo_id}
+
+    @mapping
+    def quantity(self, record):
+        if _safe_value(record, "display_type", False):
+            return {}
+
+        line_fields = self.env["purchase.order.line"]._fields
+        quantity = _safe_value(record, "product_qty", False)
+        if quantity is False:
+            quantity = _safe_value(record, "product_uom_qty", False)
+
+        if quantity is False:
+            return {}
+        if "product_qty" in line_fields:
+            return {"product_qty": quantity}
+        if "product_uom_qty" in line_fields:
+            return {"product_uom_qty": quantity}
+        return {}
