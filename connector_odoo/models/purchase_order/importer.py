@@ -112,6 +112,7 @@ class PurchaseOrderImporter(Component):
     def _after_import(self, binding, force=False):
         res = super()._after_import(binding, force)
         order_line_ids = binding._get_remote_order_line_ids()
+        binding.backend_order_line_count = len(order_line_ids)
         if order_line_ids:
             delayed_line_ids = []
             for line_id in order_line_ids:

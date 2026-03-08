@@ -16,6 +16,8 @@
                 <field name="backend_amount_total" readonly="1" />
                 <field name="backend_amount_tax" readonly="1" />
                 <field name="backend_picking_count" readonly="1" />
+                <field name="backend_order_line_count" readonly="1" />
+                <field name="synced_order_line_count" readonly="1" />
                 <field name="import_state" />
                 <button name="resync" type="object" string="Resync" />
                 <button name="sync_order_lines" type="object" string="Sync Lines" />
@@ -48,6 +50,8 @@
                             <field name="backend_amount_total" readonly="1" />
                             <field name="backend_amount_tax" readonly="1" />
                             <field name="backend_picking_count" readonly="1" />
+                            <field name="backend_order_line_count" readonly="1" />
+                            <field name="synced_order_line_count" readonly="1" />
                             <field
                                 name="import_state"
                             />
@@ -77,6 +81,8 @@
                                 <field name="backend_amount_total" readonly="1" />
                                 <field name="backend_amount_tax" readonly="1" />
                                 <field name="backend_picking_count" readonly="1" />
+                                <field name="backend_order_line_count" readonly="1" />
+                                <field name="synced_order_line_count" readonly="1" />
                                 <field name="import_state" />
                                 <button name="resync" type="object" string="Resync" />
                                 <button

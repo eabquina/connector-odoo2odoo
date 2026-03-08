@@ -25,6 +25,21 @@ class OdooPurchaseOrder(models.Model):
     backend_amount_tax = fields.Float()
     backend_state = fields.Char()
     backend_picking_count = fields.Integer()
+    backend_order_line_count = fields.Integer(string="Backend Order Line Count")
+    synced_order_line_count = fields.Integer(
+        string="Synced Order Line Count",
+        compute="_compute_synced_order_line_count",
+    )
+
+    def _compute_synced_order_line_count(self):
+        line_model = self.env["odoo.purchase.order.line"]
+        for order_id in self:
+            order_id.synced_order_line_count = line_model.search_count(
+                [
+                    ("backend_id", "=", order_id.backend_id.id),
+                    ("order_id", "=", order_id.odoo_id.id),
+                ]
+            )
 
     def _compute_import_state(self):
         for order_id in self:
@@ -37,6 +52,11 @@ class OdooPurchaseOrder(models.Model):
             if waiting:
                 order_id.import_state = "waiting"
             elif error:
+                order_id.import_state = "error_sync"
+            elif (
+                order_id.backend_order_line_count
+                != order_id.synced_order_line_count
+            ):
                 order_id.import_state = "error_sync"
             elif round(order_id.backend_amount_total, 2) != round(
                 order_id.amount_total, 2
@@ -101,6 +121,7 @@ class OdooPurchaseOrder(models.Model):
     def sync_order_lines(self):
         for binding in self:
             remote_line_ids = binding._get_remote_order_line_ids()
+            binding.backend_order_line_count = len(remote_line_ids)
             delayed_line_ids = []
             for remote_line_id in remote_line_ids:
                 line_model = self.env["odoo.purchase.order.line"]
@@ -131,10 +152,21 @@ class OdooPurchaseOrder(models.Model):
         return True
 
     def _set_state(self):
-        _logger.info("Setting state for %s", self)
-        # All data was imported. Solve the state problem and all is done
-        self._set_pickings_state()
-        self._set_purchase_state()
+        for binding in self:
+            if binding.backend_order_line_count != binding.synced_order_line_count:
+                _logger.warning(
+                    "Skipping final state sync for purchase order binding %s: "
+                    "expected %s lines, synced %s.",
+                    binding.id,
+                    binding.backend_order_line_count,
+                    binding.synced_order_line_count,
+                )
+                continue
+
+            _logger.info("Setting state for %s", binding)
+            # All data was imported. Solve the state problem and all is done
+            binding._set_pickings_state()
+            binding._set_purchase_state()
 
     def _set_pickings_state(self):
         for picking_id in self.picking_ids:
