@@ -48,6 +48,12 @@ class _RemoteRecordValue:
             return self._values[name]
         raise AttributeError(name)
 
+    def __getitem__(self, name):
+        return self._values[name]
+
+    def get(self, name, default=False):
+        return self._values.get(name, default)
+
 
 class PurchaseOrderBatchImporter(Component):
     """Import the Odoo Purchase Orders.
