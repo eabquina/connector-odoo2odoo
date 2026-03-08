@@ -94,6 +94,19 @@ class PurchaseOrderImporter(Component):
     _inherit = "odoo.importer"
     _apply_on = ["odoo.purchase.order"]
 
+    def _is_uptodate(self, binding):
+        if binding:
+            remote_line_count = len(binding._get_remote_order_line_ids())
+            if remote_line_count != binding.synced_order_line_count:
+                _logger.info(
+                    "Purchase order %s is not up-to-date: remote lines=%s synced lines=%s",
+                    self.external_id,
+                    remote_line_count,
+                    binding.synced_order_line_count,
+                )
+                return False
+        return super()._is_uptodate(binding)
+
     def _import_dependencies(self, force=False):
         """Import the dependencies for the record"""
         partner = _safe_value(self.odoo_record, "partner_id", False)
@@ -245,7 +258,7 @@ class PurchaseOrderLineBatchImporter(Component):
 
     _name = "odoo.purchase.order.line.batch.importer"
     _inherit = "odoo.delayed.batch.importer"
-    _apply_on = ["odoo.purchase.order.item"]
+    _apply_on = ["odoo.purchase.order.line"]
 
     def run(self, filters=None, force=False):
         """Run the synchronization"""
