@@ -18,6 +18,7 @@
                 <field name="backend_picking_count" readonly="1" />
                 <field name="import_state" />
                 <button name="resync" type="object" string="Resync" />
+                <button name="sync_order_lines" type="object" string="Sync Lines" />
             </list>
         </field>
     </record>
@@ -31,6 +32,7 @@
             <form>
                 <header>
                     <button name="resync" type="object" string="Resync" />
+                    <button name="sync_order_lines" type="object" string="Sync Lines" />
                 </header>
                 <sheet>
 
@@ -77,6 +79,11 @@
                                 <field name="backend_picking_count" readonly="1" />
                                 <field name="import_state" />
                                 <button name="resync" type="object" string="Resync" />
+                                <button
+                                    name="sync_order_lines"
+                                    type="object"
+                                    string="Sync Lines"
+                                />
                             </list>
                         </field>
                     </group>
