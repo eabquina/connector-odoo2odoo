@@ -398,8 +398,21 @@
                         <div
                                         invisible="default_import_stock != True"
                                     >
-                                        <field
-                                            name="import_stock_from_date"
+                            <button
+                                            name="import_warehouses"
+                                            type="object"
+                                            string="Import Warehouses"
+                                            class="oe_highlight oe_inline"
+                                            nolabel="1"
+                                        />
+                        </div>
+                    </group>
+                    <group>
+                        <div
+                                        invisible="default_import_stock != True"
+                                    >
+                            <field
+                                            name="import_warehouse_from_date"
                                             nolabel="1"
                                         />
                         </div>
@@ -417,7 +430,16 @@
                                         />
                         </div>
                     </group>
-                    <group />
+                    <group>
+                        <div
+                                        invisible="default_import_stock != True"
+                                    >
+                            <field
+                                            name="import_stock_from_date"
+                                            nolabel="1"
+                                        />
+                        </div>
+                    </group>
                     <group>
                         <button
                                         name="import_pickings"

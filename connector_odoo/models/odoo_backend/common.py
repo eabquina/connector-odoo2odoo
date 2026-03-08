@@ -272,6 +272,7 @@ class OdooBackend(models.Model):
 
     default_import_stock = fields.Boolean("Import Stock")
     import_stock_from_date = fields.Datetime()
+    import_warehouse_from_date = fields.Datetime()
 
     def get_default_language_code(self):
         lang = (
@@ -431,6 +432,12 @@ class OdooBackend(models.Model):
         if not self.default_import_stock:
             return False
         self._import_from_date("odoo.stock.location", "import_stock_from_date")
+        return True
+
+    def import_warehouses(self):
+        if not self.default_import_stock:
+            return False
+        self._import_from_date("odoo.stock.warehouse", "import_warehouse_from_date")
         return True
 
     def import_pickings(self):
