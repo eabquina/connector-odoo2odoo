@@ -187,7 +187,31 @@ class SaleOrderLineImporter(Component):
         )
         return bool(self.env.cr.fetchone())
 
+    def _has_order_binding(self, external_order_id):
+        self.env.cr.execute(
+            """
+            SELECT 1
+              FROM odoo_sale_order
+             WHERE backend_id = %s
+               AND external_id = %s
+             LIMIT 1
+            """,
+            (self.backend_record.id, external_order_id),
+        )
+        return bool(self.env.cr.fetchone())
+
     def _must_skip(self):
+        if getattr(self.odoo_record, "order_id", False):
+            external_order_id = self.odoo_record.order_id.id
+            if not self._has_order_binding(external_order_id):
+                _logger.warning(
+                    "Skipping sale order line %s: missing sale order binding "
+                    "for backend %s external order %s",
+                    self.external_id,
+                    self.backend_record.id,
+                    external_order_id,
+                )
+                return True
         # Note/section lines do not need a product binding.
         if getattr(self.odoo_record, "display_type", False):
             return False
@@ -205,6 +229,10 @@ class SaleOrderLineImporter(Component):
         return False
 
     def _import_dependencies(self, force):
+        if getattr(self.odoo_record, "order_id", False):
+            self._import_dependency(
+                self.odoo_record.order_id.id, "odoo.sale.order", force=force
+            )
         if getattr(self.odoo_record, "product_id", False):
             self._import_dependency(
                 self.odoo_record.product_id.id, "odoo.product.product", force=force
