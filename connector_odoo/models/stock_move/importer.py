@@ -63,13 +63,7 @@ class StockMoveImporter(Component):
         """True when another active job is still running for this queue set."""
         current_job_uuid = self.env.context.get("job_uuid")
         active_states = ("pending", "enqueued", "started", "wait_dependencies")
-        pending_jobs = queue_jobs.filtered(
-            lambda job: (
-                job.state in active_states
-                and getattr(job, "model_name", False) == "odoo.stock.move"
-                and getattr(job, "method_name", False) == "import_record"
-            )
-        )
+        pending_jobs = queue_jobs.filtered(lambda job: job.state in active_states)
         if current_job_uuid:
             pending_jobs = pending_jobs.filtered(lambda job: job.uuid != current_job_uuid)
         return bool(pending_jobs)
