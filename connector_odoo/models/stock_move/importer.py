@@ -59,12 +59,19 @@ class StockMoveImporter(Component):
             self.odoo_record.product_uom.id, "odoo.uom.uom", force=force
         )
 
+    def _has_pending_sibling_jobs(self, queue_jobs):
+        """True when another active job is still running for this queue set."""
+        current_job_uuid = self.env.context.get("job_uuid")
+        active_states = ("pending", "enqueued", "started", "wait_dependencies")
+        pending_jobs = queue_jobs.filtered(lambda job: job.state in active_states)
+        if current_job_uuid:
+            pending_jobs = pending_jobs.filtered(lambda job: job.uuid != current_job_uuid)
+        return bool(pending_jobs)
+
     def _after_import(self, binding, force=False):
         res = super()._after_import(binding, force)
         if self.backend_record.delayed_import_lines:
-            pending = binding.picking_id.queue_job_ids.filtered(
-                lambda x: x.state != "done" and x.args[1] != self.odoo_record.id
-            )
+            pending = self._has_pending_sibling_jobs(binding.picking_id.queue_job_ids)
             ok_purchase = (
                 binding.picking_id.purchase_id
                 and binding.picking_id.purchase_id.bind_ids
