@@ -14,6 +14,16 @@ from odoo.addons.connector.components.mapper import mapping
 _logger = logging.getLogger(__name__)
 
 
+def _safe_value(record, name, default=False):
+    try:
+        value = getattr(record, name, default)
+    except Exception:
+        return default
+    if callable(value):
+        return default
+    return value
+
+
 class StockPickingBatchImporter(Component):
     _name = "odoo.stock.picking.batch.importer"
     _inherit = "odoo.delayed.batch.importer"
@@ -84,7 +94,8 @@ class StockPickingImporter(Component):
 
     def _import_dependencies(self, force=False):
         """Import the dependencies for the record"""
-        for move_id in self.odoo_record["move_lines"]:
+        move_lines = _safe_value(self.odoo_record, "move_lines", []) or []
+        for move_id in move_lines:
             self._import_dependency(
                 move_id.location_id.id, "odoo.stock.location", force=force
             )
@@ -93,10 +104,9 @@ class StockPickingImporter(Component):
                 move_id.location_dest_id.id, "odoo.stock.location", force=force
             )
             break
-        if self.odoo_record["partner_id"]:
-            self._import_dependency(
-                self.odoo_record["partner_id"].id, "odoo.res.partner", force=force
-            )
+        partner = _safe_value(self.odoo_record, "partner_id", False)
+        if partner and getattr(partner, "id", False):
+            self._import_dependency(partner.id, "odoo.res.partner", force=force)
 
     def _after_import(self, binding, force=False):
         res = super()._after_import(binding, force)
@@ -468,7 +478,8 @@ class OdooPickingMapper(Component):
 
     @mapping
     def partner_id(self, record):
-        if record["partner_id"]:
+        partner = _safe_value(record, "partner_id", False)
+        if partner and getattr(partner, "id", False):
             binder = self.binder_for("odoo.res.partner")
-            partner_id = binder.to_internal(record["partner_id"].id, unwrap=True)
+            partner_id = binder.to_internal(partner.id, unwrap=True)
             return {"partner_id": partner_id.id if partner_id else False}
