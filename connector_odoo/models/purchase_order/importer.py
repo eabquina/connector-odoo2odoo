@@ -362,7 +362,6 @@ class PurchaseOrderLineImportMapper(Component):
     _apply_on = "odoo.purchase.order.line"
 
     direct = [
-        ("name", "name"),
         ("price_unit", "price_unit"),
         ("date_planned", "date_planned"),
         ("display_type", "display_type"),
@@ -391,6 +390,16 @@ class PurchaseOrderLineImportMapper(Component):
         if callable(value_id):
             return False
         return value_id or False
+
+    @mapping
+    def name(self, record):
+        name = _safe_value(record, "name", False)
+        if name:
+            return {"name": name}
+        product = _safe_value(record, "product_id", False)
+        if product and getattr(product, "display_name", False):
+            return {"name": product.display_name}
+        return {"name": "N/A"}
 
     @mapping
     def order_id(self, record):
