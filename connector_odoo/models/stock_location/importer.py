@@ -3,6 +3,8 @@
 
 import logging
 
+from psycopg2 import IntegrityError
+
 from odoo.addons.component.core import Component
 from odoo.addons.connector.components.mapper import mapping
 
@@ -35,6 +37,29 @@ class StockLocationImporter(Component):
     _name = "odoo.stock.location.importer"
     _inherit = "odoo.importer"
     _apply_on = ["odoo.stock.location"]
+
+    def _create(self, data):
+        """Create with sudo to avoid access errors from stock_request constraints."""
+        self._validate_data(data)
+        context = {**{"connector_no_export": True}, **self._get_context(data)}
+        model = self.model.sudo().with_context(context)
+        try:
+            with self.env.cr.savepoint():
+                return model.create(data)
+        except IntegrityError:
+            backend_id = data.get("backend_id")
+            odoo_id = data.get("odoo_id")
+            if backend_id and odoo_id:
+                existing_binding = model.search(
+                    [
+                        ("backend_id", "=", backend_id),
+                        ("odoo_id", "=", odoo_id),
+                    ],
+                    limit=1,
+                )
+                if existing_binding:
+                    return existing_binding
+            raise
 
     def _import_dependencies(self, force=False):
         """Import the dependencies for the record"""
