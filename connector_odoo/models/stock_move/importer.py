@@ -6,6 +6,16 @@ from odoo.addons.connector.components.mapper import mapping
 _logger = logging.getLogger(__name__)
 
 
+def _safe_value(record, name, default=False):
+    try:
+        value = getattr(record, name, default)
+    except Exception:
+        return default
+    if callable(value):
+        return default
+    return value
+
+
 class StockMoveBatchImporter(Component):
     """Import Stock moves."""
 
@@ -203,20 +213,22 @@ class StockMoveImportMapper(Component):
 
     @mapping
     def purchase_line_id(self, record):
-        if record.purchase_line_id:
+        purchase_line = _safe_value(record, "purchase_line_id", False)
+        if purchase_line and getattr(purchase_line, "id", False):
             binder = self.binder_for("odoo.purchase.order.line")
             return {
                 "purchase_line_id": binder.to_internal(
-                    record.purchase_line_id.id, unwrap=True
+                    purchase_line.id, unwrap=True
                 ).id
             }
 
     @mapping
     def sale_line_id(self, record):
-        if record.sale_line_id:
+        sale_line = _safe_value(record, "sale_line_id", False)
+        if sale_line and getattr(sale_line, "id", False):
             binder = self.binder_for("odoo.sale.order.line")
             return {
                 "sale_line_id": binder.to_internal(
-                    record.sale_line_id.id, unwrap=True
+                    sale_line.id, unwrap=True
                 ).id
             }
