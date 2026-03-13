@@ -48,14 +48,18 @@ class OdooSaleOrder(models.Model):
                 order_id.import_state = "waiting"
             elif error:
                 order_id.import_state = "error_sync"
-            elif round(order_id.backend_amount_total, 2) != round(
-                order_id.amount_total, 2
-            ):
-                order_id.import_state = "error_amount"
-            elif order_id.backend_picking_count != len(order_id.picking_ids):
-                order_id.import_state = "error_sync"
             else:
-                order_id.import_state = "done"
+                tolerance = 0.0
+                if order_id.currency_id:
+                    tolerance = order_id.currency_id.rounding or 0.0
+                if order_id.backend_id and order_id.backend_id.amount_tolerance:
+                    tolerance = max(tolerance, order_id.backend_id.amount_tolerance)
+                if abs(order_id.backend_amount_total - order_id.amount_total) > tolerance:
+                    order_id.import_state = "error_amount"
+                elif order_id.backend_picking_count != len(order_id.picking_ids):
+                    order_id.import_state = "error_sync"
+                else:
+                    order_id.import_state = "done"
 
     import_state = fields.Selection(
         [

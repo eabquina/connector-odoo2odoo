@@ -80,6 +80,12 @@ class OdooBackend(models.Model):
         default="jsonrpc",
         help="For SSL consider changing the port to 443",
     )
+    amount_tolerance = fields.Float(
+        string="Amount Tolerance",
+        default=0.0,
+        help="Allowed difference between backend and local totals before "
+             "marking an Amounts Error.",
+    )
     rpc_timeout = fields.Integer(
         string="RPC Timeout (s)",
         default=120,

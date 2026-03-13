@@ -69,6 +69,7 @@
                 <field name="protocol" />
                 <field name="port" />
                 <field name="rpc_timeout" />
+                <field name="amount_tolerance" />
                 <field name="default_lang_id" />
               </group>
               <group>
