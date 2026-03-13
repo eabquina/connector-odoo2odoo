@@ -86,7 +86,7 @@
 
     <menuitem
         id="menu_odoo_external_partners_address"
-        name="External Partners Address (Disapeared)"
+        name="External Partners Address (Disappeared)"
         parent="menu_odoo_external_objects"
         action="action_odoo_partners_address_disappeared"
     />
