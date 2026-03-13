@@ -68,6 +68,7 @@
                 <field name="version" />
                 <field name="protocol" />
                 <field name="port" />
+                <field name="rpc_timeout" />
                 <field name="default_lang_id" />
               </group>
               <group>

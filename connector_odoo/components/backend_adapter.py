@@ -44,6 +44,7 @@ class OdooLocation(object):
         "protocol",
         "lang_id",
         "use_custom_api_path",
+        "timeout",
     )
 
     def __init__(
@@ -57,6 +58,7 @@ class OdooLocation(object):
         protocol,
         lang_id="en_US",
         use_custom_api_path=False,
+        timeout=120,
     ):
         self.hostname = hostname
         self.login = login
@@ -66,6 +68,7 @@ class OdooLocation(object):
         self.version = version
         self.protocol = protocol
         self.lang_id = lang_id
+        self.timeout = timeout
 
 
 class OdooAPI(object):
@@ -97,6 +100,7 @@ class OdooAPI(object):
                 host=self._location.hostname,
                 port=self._location.port,
                 protocol=self._location.protocol,
+                timeout=self._location.timeout,
             )
 
             self._api_login(api)
