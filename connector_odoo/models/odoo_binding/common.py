@@ -63,6 +63,11 @@ class OdooBinding(models.AbstractModel):
     def resync(self):
         return self.with_delay().export_record(self.backend_id)
 
+    def action_resync_selected(self):
+        for record in self:
+            record.resync()
+        return True
+
     @api.model
     def import_batch(self, backend, filters=None):
         """Prepare the import of records modified on Odoo"""
