@@ -69,6 +69,52 @@ class OdooBinding(models.AbstractModel):
         return True
 
     @api.model
+    def _ensure_resync_server_actions(self):
+        action_model = self.env["ir.actions.server"].sudo()
+        model_model = self.env["ir.model"].sudo()
+        existing = {
+            (action.binding_model_id.id, action.state)
+            for action in action_model.search(
+                [
+                    ("name", "=", "Resync Selected"),
+                    ("state", "=", "code"),
+                    ("binding_model_id", "!=", False),
+                ]
+            )
+        }
+        for model_name, model_cls in self.env.registry.models.items():
+            if model_name == self._name:
+                continue
+            if getattr(model_cls, "_abstract", False):
+                continue
+            inherits = getattr(model_cls, "_inherit", [])
+            if isinstance(inherits, str):
+                inherits = [inherits]
+            if "odoo.binding" not in inherits:
+                continue
+            model_rec = model_model.search([("model", "=", model_name)], limit=1)
+            if not model_rec:
+                continue
+            key = (model_rec.id, "code")
+            if key in existing:
+                continue
+            action_model.create(
+                {
+                    "name": "Resync Selected",
+                    "model_id": model_rec.id,
+                    "binding_model_id": model_rec.id,
+                    "binding_view_types": "list",
+                    "state": "code",
+                    "code": "records.action_resync_selected()",
+                }
+            )
+
+    def _register_hook(self):
+        res = super()._register_hook()
+        self._ensure_resync_server_actions()
+        return res
+
+    @api.model
     def import_batch(self, backend, filters=None):
         """Prepare the import of records modified on Odoo"""
         if filters is None:
