@@ -242,6 +242,16 @@ class SaleOrderLineImporter(Component):
                 self.odoo_record.product_uom.id, "odoo.uom.uom", force=force
             )
 
+    def _update(self, binding, data):
+        if "product_id" in data and not binding.odoo_id.product_updatable:
+            _logger.info(
+                "Dropping product_id update for sale order line %s (product not updatable).",
+                binding.odoo_id.id,
+            )
+            data = dict(data)
+            data.pop("product_id", None)
+        return super()._update(binding, data)
+
     def _has_pending_sibling_jobs(self, queue_jobs):
         """True when another active line import job is still running."""
         current_job_uuid = self.env.context.get("job_uuid")
