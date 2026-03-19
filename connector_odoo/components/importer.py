@@ -452,5 +452,9 @@ class DelayedBatchImporter(AbstractComponent):
 
     def _import_record(self, external_id, job_options=None, **kwargs):
         """Delay the import of the records"""
-        delayable = self.model.with_delay(**job_options or {})
+        job_options = dict(job_options or {})
+        # Import jobs talk to a remote Odoo, so temporary outages should not
+        # permanently exhaust the queue before the backend is available again.
+        job_options.setdefault("max_retries", 0)
+        delayable = self.model.with_delay(**job_options)
         delayable.import_record(self.backend_record, external_id, **kwargs)
