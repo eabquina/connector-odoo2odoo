@@ -15,6 +15,7 @@ are already bound, to update the last sync date.
 """
 
 import logging
+import socket
 import urllib.error
 
 from psycopg2 import IntegrityError
@@ -322,7 +323,12 @@ class OdooImporter(AbstractComponent):
         """
         try:
             return self._run(external_id, force=force)
-        except (urllib.error.HTTPError, urllib.error.URLError) as err:
+        except (
+            urllib.error.HTTPError,
+            urllib.error.URLError,
+            socket.timeout,
+            TimeoutError,
+        ) as err:
             raise RetryableJobError(
                 "Transient network error communicating with remote Odoo: %s" % err,
                 seconds=60,
