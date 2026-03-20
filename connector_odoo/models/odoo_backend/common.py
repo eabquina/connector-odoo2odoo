@@ -146,6 +146,18 @@ class OdooBackend(models.Model):
     local_account_domain_filter = fields.Char(default="[]")
     external_account_domain_filter = fields.Char(default="[]")
 
+    default_import_account_journal = fields.Boolean("Import Journals")
+    import_account_journal_from_date = fields.Datetime()
+    external_account_journal_domain_filter = fields.Char(default="[]")
+
+    default_import_account_move = fields.Boolean("Import Journal Entries / Invoices")
+    import_account_move_from_date = fields.Datetime()
+    external_account_move_domain_filter = fields.Char(default="[]")
+
+    default_import_account_payment = fields.Boolean("Import Payments")
+    import_account_payment_from_date = fields.Datetime()
+    external_account_payment_domain_filter = fields.Char(default="[]")
+
     """
     PRODUCT SYNC OPTIONS
     """
@@ -376,6 +388,30 @@ class OdooBackend(models.Model):
         if not self.default_import_account:
             return False
         self._import_from_date("odoo.account.account", "import_account_from_date")
+        return True
+
+    def import_account_journal(self):
+        if not self.default_import_account_journal:
+            return False
+        self._import_from_date(
+            "odoo.account.journal", "import_account_journal_from_date"
+        )
+        return True
+
+    def import_account_move(self):
+        if not self.default_import_account_move:
+            return False
+        self._import_from_date(
+            "odoo.account.move", "import_account_move_from_date"
+        )
+        return True
+
+    def import_account_payment(self):
+        if not self.default_import_account_payment:
+            return False
+        self._import_from_date(
+            "odoo.account.payment", "import_account_payment_from_date"
+        )
         return True
     
     def import_product_product(self):

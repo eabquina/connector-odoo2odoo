@@ -17,6 +17,9 @@ from . import product_pricelist
 from . import product_template
 from . import uom_uom
 from . import account_account
+from . import account_journal
+from . import account_move
+from . import account_payment
 from . import sale_order
 from . import ir_attachment
 from . import purchase_order

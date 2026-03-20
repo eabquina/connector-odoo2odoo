@@ -468,35 +468,109 @@
                   <group string="Import / Export">
                     <field name="default_import_account" />
                     <field name="default_export_account" />
+                    <field name="default_import_account_journal" />
+                    <field name="default_import_account_move" />
+                    <field name="default_import_account_payment" />
                   </group>
                   <group string="General ">
                     <field name="local_account_domain_filter" />
                     <field name="external_account_domain_filter" />
+                    <field
+                        name="external_account_journal_domain_filter"
+                        string="Ext. Journal Filter"
+                        invisible="default_import_account_journal != True"
+                    />
+                    <field
+                        name="external_account_move_domain_filter"
+                        string="Ext. Move Filter"
+                        invisible="default_import_account_move != True"
+                    />
+                    <field
+                        name="external_account_payment_domain_filter"
+                        string="Ext. Payment Filter"
+                        invisible="default_import_account_payment != True"
+                    />
                   </group>
-                  <group name="account_import_operations" string="Import Operations">
-                    <div
-                                        invisible="default_import_account != True"
-                                    >
-                      <button
-                                            name="import_account_account"
-                                            type="object"
-                                            string="Import Account"
-                                            class="oe_highlight oe_inline"
-                                            help="Import Chart of Accounts"
-                                            nolabel="1"
-                                        />
-                    </div>
-                    <div
-                                        invisible="default_import_account != True"
-                                    >
-                      <field
-                                            name="import_account_from_date"
-                                            class="oe_inline"
-                                            nolabel="1"
-                                        />
-                    </div>
+                </group>
+                <group string="Import Operations">
+                  <group name="account_import_operations">
+                    <group>
+                      <div invisible="default_import_account != True">
+                        <button
+                            name="import_account_account"
+                            type="object"
+                            string="Import Accounts"
+                            class="oe_highlight oe_inline"
+                            help="Import Chart of Accounts"
+                            nolabel="1"
+                        />
+                      </div>
+                      <div invisible="default_import_account != True">
+                        <field
+                            name="import_account_from_date"
+                            class="oe_inline"
+                            nolabel="1"
+                        />
+                      </div>
+                    </group>
+                    <group>
+                      <div invisible="default_import_account_journal != True">
+                        <button
+                            name="import_account_journal"
+                            type="object"
+                            string="Import Journals"
+                            class="oe_highlight oe_inline"
+                            help="Import Account Journals"
+                            nolabel="1"
+                        />
+                      </div>
+                      <div invisible="default_import_account_journal != True">
+                        <field
+                            name="import_account_journal_from_date"
+                            class="oe_inline"
+                            nolabel="1"
+                        />
+                      </div>
+                    </group>
+                    <group>
+                      <div invisible="default_import_account_move != True">
+                        <button
+                            name="import_account_move"
+                            type="object"
+                            string="Import Journal Entries / Invoices"
+                            class="oe_highlight oe_inline"
+                            help="Import Account Moves (Invoices, Bills, Journal Entries)"
+                            nolabel="1"
+                        />
+                      </div>
+                      <div invisible="default_import_account_move != True">
+                        <field
+                            name="import_account_move_from_date"
+                            class="oe_inline"
+                            nolabel="1"
+                        />
+                      </div>
+                    </group>
+                    <group>
+                      <div invisible="default_import_account_payment != True">
+                        <button
+                            name="import_account_payment"
+                            type="object"
+                            string="Import Payments"
+                            class="oe_highlight oe_inline"
+                            help="Import Account Payments"
+                            nolabel="1"
+                        />
+                      </div>
+                      <div invisible="default_import_account_payment != True">
+                        <field
+                            name="import_account_payment_from_date"
+                            class="oe_inline"
+                            nolabel="1"
+                        />
+                      </div>
+                    </group>
                   </group>
-
                 </group>
               </page>
             </notebook>

@@ -157,6 +157,58 @@
         action="action_odoo_account_account"
     />
 
+    <record id="action_odoo_account_journal" model="ir.actions.act_window">
+        <field name="name">Odoo Journal</field>
+        <field name="res_model">odoo.account.journal</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <menuitem
+        id="menu_odoo_external_account_journal"
+        name="External Journal"
+        parent="menu_odoo_external_objects"
+        action="action_odoo_account_journal"
+    />
+
+    <record id="action_odoo_account_move" model="ir.actions.act_window">
+        <field name="name">Odoo Account Move</field>
+        <field name="res_model">odoo.account.move</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <menuitem
+        id="menu_odoo_external_account_move"
+        name="External Journal Entries"
+        parent="menu_odoo_external_objects"
+        action="action_odoo_account_move"
+    />
+
+    <record id="action_odoo_account_move_line" model="ir.actions.act_window">
+        <field name="name">Odoo Account Move Lines</field>
+        <field name="res_model">odoo.account.move.line</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <menuitem
+        id="menu_odoo_external_account_move_line"
+        name="External Journal Items"
+        parent="menu_odoo_external_objects"
+        action="action_odoo_account_move_line"
+    />
+
+    <record id="action_odoo_account_payment" model="ir.actions.act_window">
+        <field name="name">Odoo Payment</field>
+        <field name="res_model">odoo.account.payment</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <menuitem
+        id="menu_odoo_external_account_payment"
+        name="External Payment"
+        parent="menu_odoo_external_objects"
+        action="action_odoo_account_payment"
+    />
+
     <record id="action_odoo_res_currency" model="ir.actions.act_window">
         <field name="name">Odoo Currency</field>
         <field name="res_model">odoo.res.currency</field>
