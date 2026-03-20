@@ -58,14 +58,13 @@ class OdooBaseExporter(AbstractComponent):
         assert self.binding
         if not self.external_id:
             return False
-        sync = self.binding.sync_date
-        if not sync:
+        sync_date = self.binding.sync_date
+        if not sync_date:
             return True
         record = self.backend_adapter.read(self.external_id)
         if not hasattr(record, "write_date") and not record.write_date:
             # in rare case it can be empty, in doubt, import it
             return True
-        sync_date = odoo.fields.Datetime.from_string(sync)
         odoo_date = record["write_date"]
         return sync_date < odoo_date
 

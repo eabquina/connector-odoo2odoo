@@ -21,12 +21,12 @@
       <field name="name">odoo.res.currency</field>
       <field name="model">odoo.res.currency</field>
       <field name="arch" type="xml">
-        <tree>
+        <list>
           <field name="name" />
           <field name="backend_id" />
           <field name="odoo_id" />
           <field name="external_id" />
-        </tree>
+        </list>
       </field>
     </record>
 

@@ -50,6 +50,8 @@ class OdooBackend(models.Model):
             ("15.0", "Version 15.0.x"),
             ("16.0", "Version 16.0.x"),
             ("17.0", "Version 17.0.x"),
+            ("18.0", "Version 18.0.x"),
+            ("19.0", "Version 19.0.x"),
         ]
 
     active = fields.Boolean(default=True)
@@ -449,24 +451,16 @@ class OdooBackend(models.Model):
 
     def _import_from_date(self, model, from_date_field):
         import_start_time = datetime.now()
-        filters = [("write_date", "<", fields.Datetime.to_string(import_start_time))]
+        filters = [("write_date", "<", import_start_time)]
         for backend in self:
             from_date = backend[from_date_field]
             if from_date:
-                from_date = fields.Datetime.to_string(from_date)
-                filters.append(
-                    (
-                        "write_date",
-                        ">",
-                        from_date,
-                    )
-                )
+                filters.append(("write_date", ">", from_date))
             else:
                 from_date = None
             self.env[model].with_delay().import_batch(backend, filters)
 
         next_time = import_start_time - timedelta(seconds=IMPORT_DELTA_BUFFER)
-        next_time = fields.Datetime.to_string(next_time)
         self.write({from_date_field: next_time})
 
     def import_external_id(self, model, external_id, force, inmediate=False):
@@ -497,7 +491,7 @@ class OdooBackend(models.Model):
     def _export_from_date(self, model, from_date_field):
         self.ensure_one()
         import_start_time = datetime.now()
-        filters = [("write_date", "<", fields.Datetime.to_string(import_start_time))]
+        filters = [("write_date", "<", import_start_time)]
         for backend in self:
             from_date = backend[from_date_field]
             if from_date:
@@ -506,5 +500,4 @@ class OdooBackend(models.Model):
                 from_date = None
             self.env[model].with_delay().export_batch(backend, filters)
         next_time = import_start_time - timedelta(seconds=IMPORT_DELTA_BUFFER)
-        next_time = fields.Datetime.to_string(next_time)
         self.write({from_date_field: next_time})

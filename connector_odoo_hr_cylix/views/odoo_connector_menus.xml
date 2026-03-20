@@ -4,31 +4,31 @@
     <record id="action_odoo_hr_overtime" model="ir.actions.act_window">
         <field name="name">Odoo HR Overtime</field>
         <field name="res_model">odoo.hr.overtime</field>
-        <field name="view_mode">tree,form</field>
+        <field name="view_mode">list,form</field>
     </record>
 
     <record id="action_odoo_hr_attendance_late" model="ir.actions.act_window">
         <field name="name">Odoo HR Attendance Late</field>
         <field name="res_model">odoo.hr.attendance.late</field>
-        <field name="view_mode">tree,form</field>
+        <field name="view_mode">list,form</field>
     </record>
 
     <record id="action_odoo_resource_calendar_change" model="ir.actions.act_window">
         <field name="name">Odoo Work Schedule Change Requests</field>
         <field name="res_model">odoo.resource.calendar.change</field>
-        <field name="view_mode">tree,form</field>
+        <field name="view_mode">list,form</field>
     </record>
 
     <record id="action_odoo_resource_calendar_change_lines" model="ir.actions.act_window">
         <field name="name">Odoo Work Schedule Change Lines</field>
         <field name="res_model">odoo.resource.calendar.change.lines</field>
-        <field name="view_mode">tree,form</field>
+        <field name="view_mode">list,form</field>
     </record>
 
     <record id="action_odoo_resource_calendar_change_type" model="ir.actions.act_window">
         <field name="name">Odoo Work Schedule Change Types</field>
         <field name="res_model">odoo.resource.calendar.change.type</field>
-        <field name="view_mode">tree,form</field>
+        <field name="view_mode">list,form</field>
     </record>
 
     <!--- Menu Items -->

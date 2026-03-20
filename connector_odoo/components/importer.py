@@ -56,11 +56,9 @@ class OdooImporter(AbstractComponent):
             return  # no update date on Odoo, always import it.
         if not binding:
             return  # it does not exist so it should not be skipped
-        sync = binding.sync_date
-        if not sync:
+        sync_date = binding.sync_date
+        if not sync_date:
             return
-        from_string = fields.Datetime.from_string
-        sync_date = from_string(sync)
         odoo_date = self.odoo_record.write_date
         # if the last synchronization date is greater than the last
         # update in odoo, we skip the import.

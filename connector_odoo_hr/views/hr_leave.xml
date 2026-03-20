@@ -35,13 +35,13 @@
         <field name="model">odoo.hr.leave</field>
 
         <field name="arch" type="xml">
-            <tree>
+            <list>
                 <field name="display_name" />
                 <field name="odoo_id" />
                 <field name="backend_id" />
                 <field name="external_id" />
                 <button name="resync" type="object" string="Resync" />
-            </tree>
+            </list>
         </field>
     </record>
 

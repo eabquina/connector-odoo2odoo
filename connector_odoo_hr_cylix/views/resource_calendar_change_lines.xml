@@ -5,7 +5,7 @@
         <field name="name">odoo.resource.calendar.change.lines.tree</field>
         <field name="model">odoo.resource.calendar.change.lines</field>
         <field name="arch" type="xml">
-            <tree>
+            <list>
                 <field name="request_id" />
                 <field name="date" />
                 <field name="employee_id" />
@@ -14,7 +14,7 @@
                 <field name="backend_id" />
                 <field name="external_id" />
                 <button name="resync" type="object" string="Resync" />
-            </tree>
+            </list>
         </field>
     </record>
 

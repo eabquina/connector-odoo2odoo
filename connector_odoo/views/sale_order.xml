@@ -6,7 +6,7 @@
         <field name="model">odoo.sale.order</field>
 
         <field name="arch" type="xml">
-            <tree
+            <list
                 decoration-danger="import_state in ('error_sync', 'error_amount')"
                 decoration-warning="import_state == 'waiting'"
             >
@@ -20,7 +20,7 @@
                 <field name="backend_date_order" readonly="1" />
                 <field name="import_state" readonly="1" />
                 <button name="resync" type="object" string="Resync" />
-            </tree>
+            </list>
         </field>
     </record>
 
@@ -72,7 +72,7 @@
                 <page name="connector" string="Connector">
                     <separator string="Odoo" />
                     <field name="bind_ids" readonly="True">
-                        <tree
+                        <list
                             decoration-danger="import_state in ('error_sync', 'error_amount')"
                             decoration-warning="import_state == 'waiting'"
                         >
@@ -90,7 +90,7 @@
                                 readonly="1"
                             />
                             <button name="resync" type="object" string="Resync" />
-                        </tree>
+                        </list>
                     </field>
 
                     <group string="Delayed jobs">
@@ -100,14 +100,14 @@
                             nolabel="1"
                             invisible="queue_job_ids == False"
                         >
-                            <tree>
+                            <list>
                                 <field name="uuid" />
                                 <field name="state" />
                                 <field name="date_created" />
                                 <field name="date_started" />
                                 <field name="date_done" />
                                 <field name="exc_info" />
-                            </tree>
+                            </list>
                         </field>
                     </group>
 

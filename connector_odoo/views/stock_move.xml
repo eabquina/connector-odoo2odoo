@@ -11,12 +11,12 @@
                 <page string="Connectors">
                     <group string="Odoo Bindings">
                         <field name="bind_ids" readonly="1" nolabel="1">
-                            <tree>
+                            <list>
                                 <field name="backend_id" />
                                 <field name="odoo_id" />
                                 <field name="external_id" />
                                 <button name="resync" type="object" string="Resync" />
-                            </tree>
+                            </list>
                         </field>
                     </group>
                 </page>
@@ -30,13 +30,13 @@
       <field name="name">odoo.stock.move</field>
       <field name="model">odoo.stock.move</field>
       <field name="arch" type="xml">
-        <tree>
+        <list>
           <field name="name" />
           <field name="backend_id" />
           <field name="odoo_id" />
           <field name="external_id" />
           <button name="resync" type="object" string="Resync" />
-        </tree>
+        </list>
       </field>
     </record>
 

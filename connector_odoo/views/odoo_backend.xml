@@ -5,14 +5,14 @@
       <field name="name">odoo.backend.tree</field>
       <field name="model">odoo.backend</field>
       <field name="arch" type="xml">
-        <tree>
+        <list>
           <field name="name" />
           <field name="version" />
           <field name="hostname" />
           <field name="port" />
           <field name="database" />
           <field name="state" />
-        </tree>
+        </list>
       </field>
     </record>
 
@@ -20,7 +20,7 @@
       <field name="name">odoo.backend.form</field>
       <field name="model">odoo.backend</field>
       <field name="arch" type="xml">
-        <form string="Odoo Backend">
+        <form>
           <header>
             <button
                         name="synchronize_basedata"
@@ -73,7 +73,7 @@
               <group>
                 <field name="database" />
                 <field name="login" />
-                <field name="password" password="1" />
+                <field name="password" password="True" />
                 <field name="pricelist_id" />
         <field name="force" />
         <field name="ignore_translations" />
@@ -486,7 +486,7 @@
     <record id="action_odoo_backend" model="ir.actions.act_window">
       <field name="name">Odoo Backends</field>
       <field name="res_model">odoo.backend</field>
-      <field name="view_mode">tree,form</field>
+      <field name="view_mode">list,form</field>
     </record>
 
     <menuitem

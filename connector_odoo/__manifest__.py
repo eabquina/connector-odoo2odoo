@@ -5,7 +5,7 @@
     "name": "Connector Odoo",
     "summary": """
         Base connector for Odoo To Odoo scenarios""",
-    "version": "17.0.1.0.0",
+    "version": "19.0.1.0.0",
     "website": "https://github.com/OCA/connector-odoo2odoo",
     "category": "Connector",
     "license": "AGPL-3",
@@ -51,5 +51,4 @@
         "views/sale_order.xml",
     ],
     "demo": [],
-    "qweb": [],
 }

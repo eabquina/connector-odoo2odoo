@@ -68,15 +68,9 @@ class OdooSaleOrder(models.Model):
         compute=_compute_import_state,
     )
 
-    def name_get(self):
-        result = []
-        for op in self:
-            name = "{} (Backend: {})".format(
-                op.odoo_id.display_name, op.backend_id.display_name
-            )
-            result.append((op.id, name))
-
-        return result
+    def _compute_display_name(self):
+        for rec in self:
+            rec.display_name = f"{rec.odoo_id.display_name} (Backend: {rec.backend_id.display_name})"
 
     def resync(self):
         if self.backend_id.read_operation_from == "odoo":
