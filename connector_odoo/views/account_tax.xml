@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+    <record id="odoo_account_tax_tree_view" model="ir.ui.view">
+        <field name="name">odoo.account.tax.tree</field>
+        <field name="model">odoo.account.tax</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="display_name" />
+                <field name="odoo_id" />
+                <field name="backend_id" />
+                <field name="external_id" />
+                <button name="resync" type="object" string="Resync" />
+            </list>
+        </field>
+    </record>
+
+    <record id="odoo_account_tax_form_view" model="ir.ui.view">
+        <field name="name">odoo.account.tax.form</field>
+        <field name="model">odoo.account.tax</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="resync" type="object" string="Resync" />
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1><field name="name" readonly="1" /></h1>
+                        <group>
+                            <field name="odoo_id" readonly="1" />
+                            <field name="backend_id" readonly="1" />
+                            <field name="external_id" readonly="1" />
+                        </group>
+                    </div>
+                </sheet>
+            </form>
+        </field>
+    </record>
+</odoo>

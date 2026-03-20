@@ -12,6 +12,39 @@
         <field name="model_id" ref="connector_odoo.model_odoo_backend" />
     </record>
 
+    <record forcecreate="True" id="ir_cron_import_account_taxes" model="ir.cron">
+        <field name="name">Odoo2Odoo - Import Account Taxes</field>
+        <field name="active" eval="False" />
+        <field name="user_id" ref="base.user_admin" />
+        <field name="interval_number">1</field>
+        <field name="state">code</field>
+        <field name="code">model.import_account_tax()</field>
+        <field name="interval_type">days</field>
+        <field name="model_id" ref="connector_odoo.model_odoo_backend" />
+    </record>
+
+    <record forcecreate="True" id="ir_cron_import_account_payment_terms" model="ir.cron">
+        <field name="name">Odoo2Odoo - Import Payment Terms</field>
+        <field name="active" eval="False" />
+        <field name="user_id" ref="base.user_admin" />
+        <field name="interval_number">1</field>
+        <field name="state">code</field>
+        <field name="code">model.import_account_payment_term()</field>
+        <field name="interval_type">days</field>
+        <field name="model_id" ref="connector_odoo.model_odoo_backend" />
+    </record>
+
+    <record forcecreate="True" id="ir_cron_import_account_fiscal_positions" model="ir.cron">
+        <field name="name">Odoo2Odoo - Import Fiscal Positions</field>
+        <field name="active" eval="False" />
+        <field name="user_id" ref="base.user_admin" />
+        <field name="interval_number">1</field>
+        <field name="state">code</field>
+        <field name="code">model.import_account_fiscal_position()</field>
+        <field name="interval_type">days</field>
+        <field name="model_id" ref="connector_odoo.model_odoo_backend" />
+    </record>
+
     <record forcecreate="True" id="ir_cron_import_account_journals" model="ir.cron">
         <field name="name">Odoo2Odoo - Import Account Journals</field>
         <field name="active" eval="False" />
@@ -41,6 +74,28 @@
         <field name="interval_number">1</field>
         <field name="state">code</field>
         <field name="code">model.import_account_payment()</field>
+        <field name="interval_type">days</field>
+        <field name="model_id" ref="connector_odoo.model_odoo_backend" />
+    </record>
+
+    <record forcecreate="True" id="ir_cron_import_hr_employees" model="ir.cron">
+        <field name="name">Odoo2Odoo - Import Employees</field>
+        <field name="active" eval="False" />
+        <field name="user_id" ref="base.user_admin" />
+        <field name="interval_number">1</field>
+        <field name="state">code</field>
+        <field name="code">model.import_hr_employee()</field>
+        <field name="interval_type">days</field>
+        <field name="model_id" ref="connector_odoo.model_odoo_backend" />
+    </record>
+
+    <record forcecreate="True" id="ir_cron_import_hr_expenses" model="ir.cron">
+        <field name="name">Odoo2Odoo - Import Expense Reports</field>
+        <field name="active" eval="False" />
+        <field name="user_id" ref="base.user_admin" />
+        <field name="interval_number">1</field>
+        <field name="state">code</field>
+        <field name="code">model.import_hr_expense()</field>
         <field name="interval_type">days</field>
         <field name="model_id" ref="connector_odoo.model_odoo_backend" />
     </record>

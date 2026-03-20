@@ -469,6 +469,9 @@
                   <group string="Import / Export">
                     <field name="default_import_account" />
                     <field name="default_export_account" />
+                    <field name="default_import_account_tax" />
+                    <field name="default_import_account_payment_term" />
+                    <field name="default_import_account_fiscal_position" />
                     <field name="default_import_account_journal" />
                     <field name="default_import_account_move" />
                     <field name="default_import_account_payment" />
@@ -509,6 +512,63 @@
                       <div invisible="default_import_account != True">
                         <field
                             name="import_account_from_date"
+                            class="oe_inline"
+                            nolabel="1"
+                        />
+                      </div>
+                    </group>
+                    <group>
+                      <div invisible="default_import_account_tax != True">
+                        <button
+                            name="import_account_tax"
+                            type="object"
+                            string="Import Taxes"
+                            class="oe_highlight oe_inline"
+                            help="Import Tax Groups and Taxes"
+                            nolabel="1"
+                        />
+                      </div>
+                      <div invisible="default_import_account_tax != True">
+                        <field
+                            name="import_account_tax_from_date"
+                            class="oe_inline"
+                            nolabel="1"
+                        />
+                      </div>
+                    </group>
+                    <group>
+                      <div invisible="default_import_account_payment_term != True">
+                        <button
+                            name="import_account_payment_term"
+                            type="object"
+                            string="Import Payment Terms"
+                            class="oe_highlight oe_inline"
+                            help="Import Payment Terms"
+                            nolabel="1"
+                        />
+                      </div>
+                      <div invisible="default_import_account_payment_term != True">
+                        <field
+                            name="import_account_payment_term_from_date"
+                            class="oe_inline"
+                            nolabel="1"
+                        />
+                      </div>
+                    </group>
+                    <group>
+                      <div invisible="default_import_account_fiscal_position != True">
+                        <button
+                            name="import_account_fiscal_position"
+                            type="object"
+                            string="Import Fiscal Positions"
+                            class="oe_highlight oe_inline"
+                            help="Import Fiscal Positions with Tax/Account Mappings"
+                            nolabel="1"
+                        />
+                      </div>
+                      <div invisible="default_import_account_fiscal_position != True">
+                        <field
+                            name="import_account_fiscal_position_from_date"
                             class="oe_inline"
                             nolabel="1"
                         />
@@ -566,6 +626,68 @@
                       <div invisible="default_import_account_payment != True">
                         <field
                             name="import_account_payment_from_date"
+                            class="oe_inline"
+                            nolabel="1"
+                        />
+                      </div>
+                    </group>
+                  </group>
+                </group>
+              </page>
+              <page string="HR / Expenses" name="hr_expense">
+                <group>
+                  <group string="Import">
+                    <field name="default_import_hr_employee" />
+                    <field name="default_import_hr_expense" />
+                  </group>
+                  <group string="General ">
+                    <field
+                        name="external_hr_employee_domain_filter"
+                        string="Ext. Employee Filter"
+                        invisible="default_import_hr_employee != True"
+                    />
+                    <field
+                        name="external_hr_expense_domain_filter"
+                        string="Ext. Expense Filter"
+                        invisible="default_import_hr_expense != True"
+                    />
+                  </group>
+                </group>
+                <group string="Import Operations">
+                  <group>
+                    <group>
+                      <div invisible="default_import_hr_employee != True">
+                        <button
+                            name="import_hr_employee"
+                            type="object"
+                            string="Import Employees"
+                            class="oe_highlight oe_inline"
+                            help="Import Employees"
+                            nolabel="1"
+                        />
+                      </div>
+                      <div invisible="default_import_hr_employee != True">
+                        <field
+                            name="import_hr_employee_from_date"
+                            class="oe_inline"
+                            nolabel="1"
+                        />
+                      </div>
+                    </group>
+                    <group>
+                      <div invisible="default_import_hr_expense != True">
+                        <button
+                            name="import_hr_expense"
+                            type="object"
+                            string="Import Expense Reports"
+                            class="oe_highlight oe_inline"
+                            help="Import Expense Sheets and Expenses"
+                            nolabel="1"
+                        />
+                      </div>
+                      <div invisible="default_import_hr_expense != True">
+                        <field
+                            name="import_hr_expense_from_date"
                             class="oe_inline"
                             nolabel="1"
                         />

@@ -170,6 +170,58 @@
         action="action_odoo_account_journal"
     />
 
+    <record id="action_odoo_account_tax_group" model="ir.actions.act_window">
+        <field name="name">Odoo Tax Group</field>
+        <field name="res_model">odoo.account.tax.group</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <menuitem
+        id="menu_odoo_external_account_tax_group"
+        name="External Tax Groups"
+        parent="menu_odoo_external_objects"
+        action="action_odoo_account_tax_group"
+    />
+
+    <record id="action_odoo_account_tax" model="ir.actions.act_window">
+        <field name="name">Odoo Tax</field>
+        <field name="res_model">odoo.account.tax</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <menuitem
+        id="menu_odoo_external_account_tax"
+        name="External Taxes"
+        parent="menu_odoo_external_objects"
+        action="action_odoo_account_tax"
+    />
+
+    <record id="action_odoo_account_payment_term" model="ir.actions.act_window">
+        <field name="name">Odoo Payment Term</field>
+        <field name="res_model">odoo.account.payment.term</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <menuitem
+        id="menu_odoo_external_account_payment_term"
+        name="External Payment Terms"
+        parent="menu_odoo_external_objects"
+        action="action_odoo_account_payment_term"
+    />
+
+    <record id="action_odoo_account_fiscal_position" model="ir.actions.act_window">
+        <field name="name">Odoo Fiscal Position</field>
+        <field name="res_model">odoo.account.fiscal.position</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <menuitem
+        id="menu_odoo_external_account_fiscal_position"
+        name="External Fiscal Positions"
+        parent="menu_odoo_external_objects"
+        action="action_odoo_account_fiscal_position"
+    />
+
     <record id="action_odoo_account_move" model="ir.actions.act_window">
         <field name="name">Odoo Account Move</field>
         <field name="res_model">odoo.account.move</field>
@@ -363,6 +415,45 @@
         name="External Sale Order Lines"
         parent="menu_odoo_external_objects"
         action="action_odoo_sale_order_line"
+    />
+
+    <record id="action_odoo_hr_employee" model="ir.actions.act_window">
+        <field name="name">Odoo Employee</field>
+        <field name="res_model">odoo.hr.employee</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <menuitem
+        id="menu_odoo_external_hr_employee"
+        name="External Employees"
+        parent="menu_odoo_external_objects"
+        action="action_odoo_hr_employee"
+    />
+
+    <record id="action_odoo_hr_expense_sheet" model="ir.actions.act_window">
+        <field name="name">Odoo Expense Report</field>
+        <field name="res_model">odoo.hr.expense.sheet</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <menuitem
+        id="menu_odoo_external_hr_expense_sheet"
+        name="External Expense Reports"
+        parent="menu_odoo_external_objects"
+        action="action_odoo_hr_expense_sheet"
+    />
+
+    <record id="action_odoo_hr_expense" model="ir.actions.act_window">
+        <field name="name">Odoo Expense</field>
+        <field name="res_model">odoo.hr.expense</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <menuitem
+        id="menu_odoo_external_hr_expense"
+        name="External Expenses"
+        parent="menu_odoo_external_objects"
+        action="action_odoo_hr_expense"
     />
 
 </odoo>

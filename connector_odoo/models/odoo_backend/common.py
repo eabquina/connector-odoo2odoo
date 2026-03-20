@@ -151,6 +151,15 @@ class OdooBackend(models.Model):
     local_account_domain_filter = fields.Char(default="[]")
     external_account_domain_filter = fields.Char(default="[]")
 
+    default_import_account_tax = fields.Boolean("Import Taxes")
+    import_account_tax_from_date = fields.Datetime()
+
+    default_import_account_payment_term = fields.Boolean("Import Payment Terms")
+    import_account_payment_term_from_date = fields.Datetime()
+
+    default_import_account_fiscal_position = fields.Boolean("Import Fiscal Positions")
+    import_account_fiscal_position_from_date = fields.Datetime()
+
     default_import_account_journal = fields.Boolean("Import Journals")
     import_account_journal_from_date = fields.Datetime()
     external_account_journal_domain_filter = fields.Char(default="[]")
@@ -162,6 +171,18 @@ class OdooBackend(models.Model):
     default_import_account_payment = fields.Boolean("Import Payments")
     import_account_payment_from_date = fields.Datetime()
     external_account_payment_domain_filter = fields.Char(default="[]")
+
+    """
+    HR / EXPENSE SYNC OPTIONS
+    """
+
+    default_import_hr_employee = fields.Boolean("Import Employees")
+    import_hr_employee_from_date = fields.Datetime()
+    external_hr_employee_domain_filter = fields.Char(default="[]")
+
+    default_import_hr_expense = fields.Boolean("Import Expenses")
+    import_hr_expense_from_date = fields.Datetime()
+    external_hr_expense_domain_filter = fields.Char(default="[]")
 
     """
     PRODUCT SYNC OPTIONS
@@ -389,6 +410,42 @@ class OdooBackend(models.Model):
         # return checkpoint.add_checkpoint(
         #     self.env, record._name, record.id, self._name, self.id
         # )
+        return True
+
+    def import_account_tax(self):
+        if not self.default_import_account_tax:
+            return False
+        # Import tax groups first as dependency
+        self._import_from_date("odoo.account.tax.group", "import_account_tax_from_date")
+        self._import_from_date("odoo.account.tax", "import_account_tax_from_date")
+        return True
+
+    def import_account_payment_term(self):
+        if not self.default_import_account_payment_term:
+            return False
+        self._import_from_date(
+            "odoo.account.payment.term", "import_account_payment_term_from_date"
+        )
+        return True
+
+    def import_account_fiscal_position(self):
+        if not self.default_import_account_fiscal_position:
+            return False
+        self._import_from_date(
+            "odoo.account.fiscal.position", "import_account_fiscal_position_from_date"
+        )
+        return True
+
+    def import_hr_employee(self):
+        if not self.default_import_hr_employee:
+            return False
+        self._import_from_date("odoo.hr.employee", "import_hr_employee_from_date")
+        return True
+
+    def import_hr_expense(self):
+        if not self.default_import_hr_expense:
+            return False
+        self._import_from_date("odoo.hr.expense.sheet", "import_hr_expense_from_date")
         return True
 
     def import_account_account(self):
