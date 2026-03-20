@@ -105,14 +105,15 @@ class OdooSaleOrder(models.Model):
 
         if self.backend_state == "done" and self.odoo_id.state == "sale":
             return
+        sale_order = self.odoo_id.with_context(skip_procurement=True)
         if self.backend_state == "waiting":
-            self.odoo_id.action_confirm()
+            sale_order.action_confirm()
         elif self.backend_state == "confirmed":
-            self.odoo_id.action_confirm()
+            sale_order.action_confirm()
         elif self.backend_state == "approved":
-            self.odoo_id.action_confirm()
+            sale_order.action_confirm()
         elif self.backend_state == "done":
-            self.odoo_id.action_confirm()
+            sale_order.action_confirm()
         elif "except" in self.backend_state:
             self.odoo_id.action_done()
         elif self.backend_state == "cancel":
