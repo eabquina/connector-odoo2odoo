@@ -77,7 +77,6 @@
         </field>
     </record>
 
-
     <record id="odoo_sale_order_form_view" model="ir.ui.view">
         <field name="name">odoo.sale.order.form</field>
         <field name="model">odoo.sale.order</field>

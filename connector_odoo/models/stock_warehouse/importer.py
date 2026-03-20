@@ -79,13 +79,23 @@ class WarehouseMapper(Component):
         if len(warehouse_id) == 1:
             res.update({"odoo_id": warehouse_id.id})
         else:
-            raise ValidationError(
-                _(
-                    "Warehouse code %s not found. "
-                    "Only can link existing warehouse. Create it manually"
-                )
-                % code
+            # Auto-create missing warehouse to keep import non-blocking.
+            name = record.name if hasattr(record, "name") else code
+            company_id = self.env.user.company_id.id
+            new_warehouse = self.env["stock.warehouse"].sudo().create(
+                {
+                    "name": name or code,
+                    "code": code,
+                    "company_id": company_id,
+                }
             )
+            _logger.warning(
+                "Created missing warehouse for code %s as %s (%s)",
+                code,
+                new_warehouse.display_name,
+                new_warehouse.id,
+            )
+            res.update({"odoo_id": new_warehouse.id})
         return res
 
     @mapping

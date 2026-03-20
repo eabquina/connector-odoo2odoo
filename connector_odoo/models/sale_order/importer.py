@@ -187,7 +187,31 @@ class SaleOrderLineImporter(Component):
         )
         return bool(self.env.cr.fetchone())
 
+    def _has_order_binding(self, external_order_id):
+        self.env.cr.execute(
+            """
+            SELECT 1
+              FROM odoo_sale_order
+             WHERE backend_id = %s
+               AND external_id = %s
+             LIMIT 1
+            """,
+            (self.backend_record.id, external_order_id),
+        )
+        return bool(self.env.cr.fetchone())
+
     def _must_skip(self):
+        if getattr(self.odoo_record, "order_id", False):
+            external_order_id = self.odoo_record.order_id.id
+            if not self._has_order_binding(external_order_id):
+                _logger.warning(
+                    "Skipping sale order line %s: missing sale order binding "
+                    "for backend %s external order %s",
+                    self.external_id,
+                    self.backend_record.id,
+                    external_order_id,
+                )
+                return True
         # Note/section lines do not need a product binding.
         if getattr(self.odoo_record, "display_type", False):
             return False
@@ -205,6 +229,10 @@ class SaleOrderLineImporter(Component):
         return False
 
     def _import_dependencies(self, force):
+        if getattr(self.odoo_record, "order_id", False):
+            self._import_dependency(
+                self.odoo_record.order_id.id, "odoo.sale.order", force=force
+            )
         if getattr(self.odoo_record, "product_id", False):
             self._import_dependency(
                 self.odoo_record.product_id.id, "odoo.product.product", force=force
@@ -214,12 +242,54 @@ class SaleOrderLineImporter(Component):
                 self.odoo_record.product_uom.id, "odoo.uom.uom", force=force
             )
 
+    def _update(self, binding, data):
+        data = dict(data)
+        if "product_id" in data and not binding.odoo_id.product_updatable:
+            _logger.info(
+                "Dropping product_id update for sale order line %s (product not updatable).",
+                binding.odoo_id.id,
+            )
+            data.pop("product_id", None)
+        if binding.odoo_id.order_id.locked:
+            protected_fields = {
+                "product_id",
+                "name",
+                "price_unit",
+                "product_uom",
+                "product_uom_id",
+                "product_uom_qty",
+                "discount",
+            }
+            removed = sorted(protected_fields & set(data))
+            if removed:
+                _logger.info(
+                    "Dropping locked sale order line updates for %s: %s",
+                    binding.odoo_id.id,
+                    ", ".join(removed),
+                )
+                for field_name in removed:
+                    data.pop(field_name, None)
+        if not data:
+            _logger.info(
+                "Skipping update for locked sale order line %s: no writable fields remain.",
+                binding.odoo_id.id,
+            )
+            return
+        return super()._update(binding, data)
+
+    def _has_pending_sibling_jobs(self, queue_jobs):
+        """True when another active line import job is still running."""
+        current_job_uuid = self.env.context.get("job_uuid")
+        active_states = ("pending", "enqueued", "started", "wait_dependencies")
+        pending_jobs = queue_jobs.filtered(lambda job: job.state in active_states)
+        if current_job_uuid:
+            pending_jobs = pending_jobs.filtered(lambda job: job.uuid != current_job_uuid)
+        return bool(pending_jobs)
+
     def _after_import(self, binding, force=False):
         res = super()._after_import(binding, force)
         if self.backend_record.delayed_import_lines:
-            pending = binding.order_id.queue_job_ids.filtered(
-                lambda x: x.state != "done" and x.args[1] != self.odoo_record.id
-            )
+            pending = self._has_pending_sibling_jobs(binding.order_id.queue_job_ids)
             if not pending:
                 binding = self.env["odoo.sale.order"].search(
                     [("odoo_id", "=", binding.order_id.id)]

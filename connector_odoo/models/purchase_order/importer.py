@@ -330,12 +330,19 @@ class PurchaseOrderLineImporter(Component):
                 self.odoo_record.product_uom.id, "odoo.uom.uom", force=force
             )
 
+    def _has_pending_sibling_jobs(self, queue_jobs):
+        """True when another active line import job is still running."""
+        current_job_uuid = self.env.context.get("job_uuid")
+        active_states = ("pending", "enqueued", "started", "wait_dependencies")
+        pending_jobs = queue_jobs.filtered(lambda job: job.state in active_states)
+        if current_job_uuid:
+            pending_jobs = pending_jobs.filtered(lambda job: job.uuid != current_job_uuid)
+        return bool(pending_jobs)
+
     def _after_import(self, binding, force=False):
         res = super()._after_import(binding, force)
         if self.backend_record.delayed_import_lines:
-            pending = binding.order_id.queue_job_ids.filtered(
-                lambda x: x.state != "done" and x.args[1] != self.odoo_record.id
-            )
+            pending = self._has_pending_sibling_jobs(binding.order_id.queue_job_ids)
             if not pending:
                 binding = self.env["odoo.purchase.order"].search(
                     [("odoo_id", "=", binding.order_id.id)]
@@ -355,7 +362,6 @@ class PurchaseOrderLineImportMapper(Component):
     _apply_on = "odoo.purchase.order.line"
 
     direct = [
-        ("name", "name"),
         ("price_unit", "price_unit"),
         ("date_planned", "date_planned"),
         ("display_type", "display_type"),
@@ -384,6 +390,16 @@ class PurchaseOrderLineImportMapper(Component):
         if callable(value_id):
             return False
         return value_id or False
+
+    @mapping
+    def name(self, record):
+        name = _safe_value(record, "name", False)
+        if name:
+            return {"name": name}
+        product = _safe_value(record, "product_id", False)
+        if product and getattr(product, "display_name", False):
+            return {"name": product.display_name}
+        return {"name": "N/A"}
 
     @mapping
     def order_id(self, record):

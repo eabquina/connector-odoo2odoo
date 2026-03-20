@@ -6,6 +6,16 @@ from odoo.addons.connector.components.mapper import mapping
 _logger = logging.getLogger(__name__)
 
 
+def _safe_value(record, name, default=False):
+    try:
+        value = getattr(record, name, default)
+    except Exception:
+        return default
+    if callable(value):
+        return default
+    return value
+
+
 class StockMoveBatchImporter(Component):
     """Import Stock moves."""
 
@@ -59,12 +69,19 @@ class StockMoveImporter(Component):
             self.odoo_record.product_uom.id, "odoo.uom.uom", force=force
         )
 
+    def _has_pending_sibling_jobs(self, queue_jobs):
+        """True when another active job is still running for this queue set."""
+        current_job_uuid = self.env.context.get("job_uuid")
+        active_states = ("pending", "enqueued", "started", "wait_dependencies")
+        pending_jobs = queue_jobs.filtered(lambda job: job.state in active_states)
+        if current_job_uuid:
+            pending_jobs = pending_jobs.filtered(lambda job: job.uuid != current_job_uuid)
+        return bool(pending_jobs)
+
     def _after_import(self, binding, force=False):
         res = super()._after_import(binding, force)
         if self.backend_record.delayed_import_lines:
-            pending = binding.picking_id.queue_job_ids.filtered(
-                lambda x: x.state != "done" and x.args[1] != self.odoo_record.id
-            )
+            pending = self._has_pending_sibling_jobs(binding.picking_id.queue_job_ids)
             ok_purchase = (
                 binding.picking_id.purchase_id
                 and binding.picking_id.purchase_id.bind_ids
@@ -196,20 +213,22 @@ class StockMoveImportMapper(Component):
 
     @mapping
     def purchase_line_id(self, record):
-        if record.purchase_line_id:
+        purchase_line = _safe_value(record, "purchase_line_id", False)
+        if purchase_line and getattr(purchase_line, "id", False):
             binder = self.binder_for("odoo.purchase.order.line")
             return {
                 "purchase_line_id": binder.to_internal(
-                    record.purchase_line_id.id, unwrap=True
+                    purchase_line.id, unwrap=True
                 ).id
             }
 
     @mapping
     def sale_line_id(self, record):
-        if record.sale_line_id:
+        sale_line = _safe_value(record, "sale_line_id", False)
+        if sale_line and getattr(sale_line, "id", False):
             binder = self.binder_for("odoo.sale.order.line")
             return {
                 "sale_line_id": binder.to_internal(
-                    record.sale_line_id.id, unwrap=True
+                    sale_line.id, unwrap=True
                 ).id
             }

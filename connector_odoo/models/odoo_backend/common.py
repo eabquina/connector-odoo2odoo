@@ -80,6 +80,11 @@ class OdooBackend(models.Model):
         default="jsonrpc",
         help="For SSL consider changing the port to 443",
     )
+    rpc_timeout = fields.Integer(
+        string="RPC Timeout (s)",
+        default=120,
+        help="Timeout for remote Odoo RPC calls in seconds.",
+    )
     default_lang_id = fields.Many2one(
         comodel_name="res.lang", string="Default Language"
     )
@@ -308,6 +313,7 @@ class OdooBackend(models.Model):
             version=self.version,
             protocol=self.protocol,
             lang_id=self.get_default_language_code(),
+            timeout=self.rpc_timeout or 120,
         )
         return OdooAPI(odoo_location)
 
@@ -341,6 +347,7 @@ class OdooBackend(models.Model):
             version=self.version,
             protocol=self.protocol,
             lang_id=lang,
+            timeout=self.rpc_timeout or 120,
         )
         with OdooAPI(odoo_location) as odoo_api:
             _super = super(OdooBackend, self.with_context(lang=lang))

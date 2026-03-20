@@ -15,6 +15,7 @@ are already bound, to update the last sync date.
 """
 
 import logging
+import socket
 import urllib.error
 
 from psycopg2 import IntegrityError
@@ -322,7 +323,12 @@ class OdooImporter(AbstractComponent):
         """
         try:
             return self._run(external_id, force=force)
-        except (urllib.error.HTTPError, urllib.error.URLError) as err:
+        except (
+            urllib.error.HTTPError,
+            urllib.error.URLError,
+            socket.timeout,
+            TimeoutError,
+        ) as err:
             raise RetryableJobError(
                 "Transient network error communicating with remote Odoo: %s" % err,
                 seconds=60,
@@ -446,5 +452,9 @@ class DelayedBatchImporter(AbstractComponent):
 
     def _import_record(self, external_id, job_options=None, **kwargs):
         """Delay the import of the records"""
-        delayable = self.model.with_delay(**job_options or {})
+        job_options = dict(job_options or {})
+        # Import jobs talk to a remote Odoo, so temporary outages should not
+        # permanently exhaust the queue before the backend is available again.
+        job_options.setdefault("max_retries", 0)
+        delayable = self.model.with_delay(**job_options)
         delayable.import_record(self.backend_record, external_id, **kwargs)

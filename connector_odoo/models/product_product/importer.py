@@ -11,6 +11,16 @@ from odoo.addons.connector.exception import MappingError
 _logger = logging.getLogger(__name__)
 
 
+def _normalize_product_type(value):
+    if not value:
+        return False
+    mapping = {
+        "product": "consu",
+        "consumable": "consu",
+    }
+    return mapping.get(value, value)
+
+
 class ProductBatchImporter(Component):
     """Import the Odoo Products.
 
@@ -109,11 +119,16 @@ class ProductImportMapper(Component):
 
     @mapping
     def product_type(self, record):
-        detailed_type = (
+        product_type = (
             record.detailed_type if hasattr(record, "detailed_type") else record.type
         )
-        if detailed_type:
-            return {"detailed_type": detailed_type}
+        product_type = _normalize_product_type(product_type)
+        if product_type:
+            # Odoo 18 expects type in ('consu', 'service', 'combo').
+            if "type" in self.model._fields:
+                return {"type": product_type}
+            if "detailed_type" in self.model._fields:
+                return {"detailed_type": product_type}
         return {}
 
     @only_create
