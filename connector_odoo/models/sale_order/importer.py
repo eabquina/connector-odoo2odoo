@@ -243,13 +243,38 @@ class SaleOrderLineImporter(Component):
             )
 
     def _update(self, binding, data):
+        data = dict(data)
         if "product_id" in data and not binding.odoo_id.product_updatable:
             _logger.info(
                 "Dropping product_id update for sale order line %s (product not updatable).",
                 binding.odoo_id.id,
             )
-            data = dict(data)
             data.pop("product_id", None)
+        if binding.odoo_id.order_id.locked:
+            protected_fields = {
+                "product_id",
+                "name",
+                "price_unit",
+                "product_uom",
+                "product_uom_id",
+                "product_uom_qty",
+                "discount",
+            }
+            removed = sorted(protected_fields & set(data))
+            if removed:
+                _logger.info(
+                    "Dropping locked sale order line updates for %s: %s",
+                    binding.odoo_id.id,
+                    ", ".join(removed),
+                )
+                for field_name in removed:
+                    data.pop(field_name, None)
+        if not data:
+            _logger.info(
+                "Skipping update for locked sale order line %s: no writable fields remain.",
+                binding.odoo_id.id,
+            )
+            return
         return super()._update(binding, data)
 
     def _has_pending_sibling_jobs(self, queue_jobs):
