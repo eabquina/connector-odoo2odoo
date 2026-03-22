@@ -73,7 +73,7 @@ class AccountPaymentImportMapper(Component):
     _apply_on = "odoo.account.payment"
 
     direct = [
-        ("ref", "ref"),
+        ("ref", "memo"),
         ("state", "backend_state"),
     ]
 
