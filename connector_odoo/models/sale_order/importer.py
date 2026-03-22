@@ -3,11 +3,18 @@
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl.html)
 
 import logging
+from datetime import datetime, timedelta
 
 from odoo.addons.component.core import Component
 from odoo.addons.connector.components.mapper import mapping, only_create
 
 _logger = logging.getLogger(__name__)
+
+# Maximum records per batch before splitting into date-range chunks.
+# Keeps individual cron runs well under the worker timeout.
+BATCH_THRESHOLD = 5000
+# Size of each date-range chunk in days.
+CHUNK_DAYS = 30
 
 
 class SaleOrderBatchImporter(Component):
@@ -16,6 +23,10 @@ class SaleOrderBatchImporter(Component):
     For every sale order in the list, a delayed job is created.
     A priority is set on the jobs according to their level to rise the
     chance to have the top level pricelist imported first.
+
+    When the result set exceeds BATCH_THRESHOLD the date range is split
+    into monthly chunks, each queued as a separate delayed job so that
+    the cron worker does not time out.
     """
 
     _name = "odoo.sale.order.batch.importer"
@@ -23,22 +34,91 @@ class SaleOrderBatchImporter(Component):
     _apply_on = ["odoo.sale.order"]
     _usage = "batch.importer"
 
-    def run(self, filters=None, force=False):
-        """Run the synchronization"""
+    def _extract_date_bounds(self, filters):
+        """Return (from_dt, to_dt) extracted from write_date domain filters."""
+        from_dt = None
+        to_dt = None
+        if not filters:
+            return from_dt, to_dt
+        for clause in filters:
+            if len(clause) == 3 and clause[0] == "write_date":
+                if clause[1] == ">":
+                    from_dt = clause[2] if isinstance(clause[2], datetime) else None
+                elif clause[1] == "<":
+                    to_dt = clause[2] if isinstance(clause[2], datetime) else None
+        return from_dt, to_dt
 
+    def _build_chunk_filters(self, from_dt, to_dt):
+        """Build a connector domain for a specific date window."""
+        filters = []
+        if to_dt:
+            filters.append(("write_date", "<", to_dt))
+        if from_dt:
+            filters.append(("write_date", ">", from_dt))
+        return filters
+
+    def _import_ids(self, ids):
+        """Create a delayed import job for each external id."""
+        base_priority = 10
+        for order in ids:
+            order_id = self.backend_adapter.read(order)
+            self._import_record(order_id.id, job_options={"priority": base_priority})
+
+    def run(self, filters=None, force=False):
+        """Run the synchronization, chunking large date ranges."""
         updated_ids = self.backend_adapter.search(filters)
+        total = len(updated_ids)
         _logger.info(
             "search for odoo sale orders %s returned %s items",
             filters,
-            len(updated_ids),
+            total,
         )
-        base_priority = 10
-        for order in updated_ids:
-            order_id = self.backend_adapter.read(order)
-            job_options = {
-                "priority": base_priority,
-            }
-            self._import_record(order_id.id, job_options=job_options)
+
+        if total <= BATCH_THRESHOLD:
+            self._import_ids(updated_ids)
+            return
+
+        # Large result set — try to split by date range
+        from_dt, to_dt = self._extract_date_bounds(filters)
+        if not from_dt or not to_dt:
+            _logger.warning(
+                "Large sale order batch (%s records) but cannot chunk "
+                "without valid date bounds (from=%s, to=%s). "
+                "Falling back to full import.",
+                total,
+                from_dt,
+                to_dt,
+            )
+            self._import_ids(updated_ids)
+            return
+
+        _logger.info(
+            "Splitting %s sale orders into %d-day chunks from %s to %s",
+            total,
+            CHUNK_DAYS,
+            from_dt,
+            to_dt,
+        )
+
+        chunk_start = from_dt
+        chunk_num = 0
+        while chunk_start < to_dt:
+            chunk_end = min(chunk_start + timedelta(days=CHUNK_DAYS), to_dt)
+            chunk_filters = self._build_chunk_filters(chunk_start, chunk_end)
+            chunk_num += 1
+            _logger.info(
+                "Queuing sale order chunk #%d: %s -> %s",
+                chunk_num,
+                chunk_start,
+                chunk_end,
+            )
+            self.env["odoo.sale.order"].with_delay(
+                priority=15 + chunk_num,
+                description="Import sale orders chunk #%d (%s -> %s)"
+                % (chunk_num, chunk_start.date(), chunk_end.date()),
+            ).import_batch(self.backend_record, chunk_filters, force=force)
+
+            chunk_start = chunk_end
 
 
 class SaleOrderImporter(Component):
