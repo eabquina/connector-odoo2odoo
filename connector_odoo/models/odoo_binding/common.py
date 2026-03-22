@@ -115,13 +115,13 @@ class OdooBinding(models.AbstractModel):
         return res
 
     @api.model
-    def import_batch(self, backend, filters=None):
+    def import_batch(self, backend, filters=None, force=False):
         """Prepare the import of records modified on Odoo"""
         if filters is None:
             filters = {}
         with backend.work_on(self._name) as work:
             importer = work.component(usage="batch.importer")
-            return importer.run(filters=filters, force=backend.force)
+            return importer.run(filters=filters, force=force or backend.force)
 
     @api.model
     def import_record(self, backend, external_id, force=False):
