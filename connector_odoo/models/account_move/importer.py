@@ -484,6 +484,32 @@ class AccountMoveLineImportMapper(Component):
         odoo_id = self._lookup_odoo_id("odoo_uom_uom", external_uom_id)
         if not odoo_id:
             return {}
+        # Validate UoM category matches the product's UoM category.
+        # Odoo 18 enforces this; Odoo 13 did not.
+        external_product_id = self._extract_external_id(record, "product_id")
+        if external_product_id:
+            product_odoo_id = self._lookup_odoo_id(
+                "odoo_product_product", external_product_id
+            )
+            if product_odoo_id:
+                product = self.env["product.product"].browse(product_odoo_id)
+                uom = self.env["uom.uom"].browse(odoo_id)
+                if (
+                    product.exists()
+                    and uom.exists()
+                    and product.uom_id.category_id != uom.category_id
+                ):
+                    _logger.info(
+                        "Move line %s: UoM '%s' (cat=%s) incompatible with "
+                        "product '%s' UoM '%s' (cat=%s) — using product default",
+                        getattr(record, "id", "n/a"),
+                        uom.name,
+                        uom.category_id.name,
+                        product.name,
+                        product.uom_id.name,
+                        product.uom_id.category_id.name,
+                    )
+                    return {"product_uom_id": product.uom_id.id}
         return {"product_uom_id": odoo_id}
 
     @mapping
