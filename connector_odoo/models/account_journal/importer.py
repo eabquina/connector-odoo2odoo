@@ -54,22 +54,6 @@ class AccountJournalImportMapper(Component):
 
     @only_create
     @mapping
-    def odoo_id(self, record):
-        """Match existing journal by code and type."""
-        code = getattr(record, "code", False)
-        journal_type = getattr(record, "type", False)
-        if not code:
-            return {}
-        domain = [("code", "=", code)]
-        if journal_type:
-            domain.append(("type", "=", journal_type))
-        journal = self.env["account.journal"].search(domain, limit=1)
-        if journal:
-            return {"odoo_id": journal.id}
-        return {}
-
-    @only_create
-    @mapping
     def code(self, record):
         code = getattr(record, "code", False)
         if callable(code):
@@ -77,6 +61,13 @@ class AccountJournalImportMapper(Component):
         if not code:
             return {}
         return {"code": code}
+
+    # Odoo 18 valid journal types
+    _VALID_JOURNAL_TYPES = {"sale", "purchase", "cash", "bank", "general"}
+    # Map removed Odoo 13 types to their Odoo 18 equivalents
+    _JOURNAL_TYPE_MAP = {
+        "situation": "general",  # opening entries journal
+    }
 
     @only_create
     @mapping
@@ -86,7 +77,34 @@ class AccountJournalImportMapper(Component):
             return {}
         if not journal_type:
             return {}
+        # Map deprecated types to valid Odoo 18 types
+        journal_type = self._JOURNAL_TYPE_MAP.get(journal_type, journal_type)
+        if journal_type not in self._VALID_JOURNAL_TYPES:
+            _logger.warning(
+                "Unknown journal type %r from remote, defaulting to 'general'",
+                journal_type,
+            )
+            journal_type = "general"
         return {"type": journal_type}
+
+    @only_create
+    @mapping
+    def odoo_id(self, record):
+        """Match existing journal by code and type."""
+        code = getattr(record, "code", False)
+        journal_type = getattr(record, "type", False)
+        if not code:
+            return {}
+        # Also remap type for the search domain
+        if journal_type:
+            journal_type = self._JOURNAL_TYPE_MAP.get(journal_type, journal_type)
+        domain = [("code", "=", code)]
+        if journal_type:
+            domain.append(("type", "=", journal_type))
+        journal = self.env["account.journal"].search(domain, limit=1)
+        if journal:
+            return {"odoo_id": journal.id}
+        return {}
 
     @mapping
     def currency_id(self, record):

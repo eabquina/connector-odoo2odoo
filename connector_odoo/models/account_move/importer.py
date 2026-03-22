@@ -105,11 +105,20 @@ class AccountMoveImporter(Component):
         binding.backend_move_line_count = len(remote_line_ids)
         if remote_line_ids:
             for line_id in remote_line_ids:
-                self.env["odoo.account.move.line"].with_delay().import_record(
+                self.env["odoo.account.move.line"].with_delay(
+                    priority=12,
+                ).import_record(
                     self.backend_record, line_id, force
                 )
         if binding.backend_state == "posted" and binding.odoo_id.state == "draft":
-            binding.with_delay()._post_if_needed()
+            # Schedule posting with lower priority (higher number) and a delay
+            # so move lines have time to be imported first
+            binding.with_delay(
+                priority=20,
+                eta=600,
+                description="Post account.move %s after line sync"
+                % binding.odoo_id.id,
+            )._post_if_needed()
         return res
 
 
@@ -321,9 +330,18 @@ class AccountMoveLineImportMapper(Component):
         ("debit", "debit"),
         ("credit", "credit"),
         ("amount_currency", "amount_currency"),
-        ("display_type", "display_type"),
         ("date_maturity", "date_maturity"),
     ]
+
+    @mapping
+    def display_type(self, record):
+        """In Odoo 13, regular lines have display_type=False/NULL.
+        In Odoo 18, display_type is NOT NULL and defaults to 'product'
+        for regular lines."""
+        display_type = _safe_value(record, "display_type", False)
+        if not display_type:
+            return {"display_type": "product"}
+        return {"display_type": display_type}
 
     def _lookup_odoo_id(self, table, external_id):
         self.env.cr.execute(

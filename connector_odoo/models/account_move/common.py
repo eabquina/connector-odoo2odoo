@@ -105,6 +105,33 @@ class OdooAccountMove(models.Model):
     def _post_if_needed(self):
         for binding in self:
             if binding.backend_state == "posted" and binding.odoo_id.state == "draft":
+                # Check that all move lines have been synced before posting
+                expected = binding.backend_move_line_count
+                actual = binding.synced_move_line_count
+                if expected and actual < expected:
+                    _logger.info(
+                        "Deferring post for account.move %s (binding %s): "
+                        "%d/%d lines synced",
+                        binding.odoo_id.id,
+                        binding.id,
+                        actual,
+                        expected,
+                    )
+                    binding.with_delay(
+                        priority=20,
+                        eta=300,
+                        description="Retry post account.move %s (%d/%d lines)"
+                        % (binding.odoo_id.id, actual, expected),
+                    )._post_if_needed()
+                    continue
+                if not binding.odoo_id.line_ids:
+                    _logger.warning(
+                        "Skipping post for account.move %s (binding %s): "
+                        "no lines present",
+                        binding.odoo_id.id,
+                        binding.id,
+                    )
+                    continue
                 try:
                     binding.odoo_id.action_post()
                 except Exception:
