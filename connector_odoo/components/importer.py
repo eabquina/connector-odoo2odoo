@@ -19,6 +19,7 @@ import socket
 import urllib.error
 
 from psycopg2 import IntegrityError
+from psycopg2.errors import DeadlockDetected
 
 from odoo import _, fields
 
@@ -204,14 +205,43 @@ class OdooImporter(AbstractComponent):
         self._validate_data(data)
         context = {**{"connector_no_export": True}, **self._get_context(data)}
         model = self.model.with_context(context)
+        backend_id = data.get("backend_id")
+        odoo_id = data.get("odoo_id")
         try:
             with self.env.cr.savepoint():
                 binding = model.create(data)
+        except DeadlockDetected as exc:
+            if (
+                backend_id
+                and odoo_id
+                and "backend_id" in model._fields
+                and "odoo_id" in model._fields
+            ):
+                existing_binding = model.search(
+                    [
+                        ("backend_id", "=", backend_id),
+                        ("odoo_id", "=", odoo_id),
+                    ],
+                    limit=1,
+                )
+                if existing_binding:
+                    _logger.warning(
+                        "Recovered from deadlock by reusing existing binding %s "
+                        "for backend_id=%s odoo_id=%s",
+                        existing_binding.id,
+                        backend_id,
+                        odoo_id,
+                    )
+                    return existing_binding
+            raise RetryableJobError(
+                "Deadlock detected while creating %s(%s): %s"
+                % (self.work.model_name, self.external_id, exc),
+                seconds=10,
+                ignore_retry=False,
+            ) from exc
         except IntegrityError as exc:
             exc_str = str(exc)
             # Race-safe fallback for bindings unique on (backend_id, odoo_id).
-            backend_id = data.get("backend_id")
-            odoo_id = data.get("odoo_id")
             if (
                 backend_id
                 and odoo_id
