@@ -186,6 +186,73 @@ class GenericAdapter(AbstractComponent):
     # _odoo_model = None
     # _admin_path = None
 
+    # Prefetch cache: {model_name: {record_id: odoorpc_record}}
+    _prefetch_cache = {}
+
+    def prefetch(self, external_ids, batch_size=500):
+        """Bulk-fetch records from the remote Odoo into an in-memory cache.
+
+        Subsequent ``read(id)`` calls for prefetched IDs return instantly
+        from the cache instead of making individual RPC round-trips.
+
+        Each batch issues a single ``browse(ids)`` RPC call.  Iterating the
+        resulting recordset yields individual records that **share** the
+        same internal ``_values`` dict (odoorpc's native caching), so no
+        extra RPC is needed per record.
+
+        :param external_ids: list of remote record IDs to prefetch
+        :param batch_size: number of records per RPC call (default 500)
+        """
+        ext_model = self._odoo_model
+        cache = self.__class__._prefetch_cache.setdefault(ext_model, {})
+
+        # Filter out already-cached IDs
+        ids_to_fetch = [eid for eid in external_ids if eid not in cache]
+        if not ids_to_fetch:
+            return
+
+        try:
+            odoo_api = self.work.odoo_api.api
+        except AttributeError:
+            _logger.warning("Cannot prefetch: no odoo_api available")
+            return
+
+        remote_model = odoo_api.env[ext_model]
+        total = len(ids_to_fetch)
+
+        for offset in range(0, total, batch_size):
+            batch = ids_to_fetch[offset : offset + batch_size]
+            try:
+                # One RPC call per batch: browse() triggers _init_values()
+                # which fetches all fields for all IDs in a single read().
+                recordset = remote_model.browse(batch)
+                # Iterate the recordset — each yielded record shares the
+                # parent's _values dict (via iterated= parameter in _browse),
+                # so field access is instant with no additional RPC.
+                for record in recordset:
+                    cache[record.id] = record
+            except Exception:
+                _logger.warning(
+                    "Prefetch batch failed for %s offset=%d, "
+                    "records will be fetched individually",
+                    ext_model,
+                    offset,
+                    exc_info=True,
+                )
+            _logger.info(
+                "Prefetched %s: %d/%d records cached",
+                ext_model,
+                min(offset + batch_size, total),
+                total,
+            )
+
+    def clear_prefetch(self, model=None):
+        """Clear the prefetch cache for a model or all models."""
+        if model:
+            self.__class__._prefetch_cache.pop(model, None)
+        else:
+            self.__class__._prefetch_cache.clear()
+
     def _normalize_value(self, value):
         if isinstance(value, datetime):
             return fields.Datetime.to_string(value)
@@ -257,11 +324,24 @@ class GenericAdapter(AbstractComponent):
 
     # pylint: disable=W8106,W0622
     def read(self, id, attributes=None, model=None, context=None):
-        """Returns the information of a record
-        :rtype: dict
+        """Returns the information of a record.
+
+        If the record was previously loaded via :meth:`prefetch`, the
+        cached odoorpc record is returned immediately without an RPC call.
+
+        :rtype: odoorpc record object
         """
         arguments = int(id)
         ext_model = model or self._odoo_model
+
+        # Return from prefetch cache if available (no RPC needed)
+        if not attributes and not model and not context:
+            cached = self.__class__._prefetch_cache.get(
+                ext_model, {}
+            ).get(arguments)
+            if cached is not None:
+                return cached
+
         if attributes:
             # Avoid to pass Null values in attributes. Workaround for
             # https://bugs.launchpad.net/openerp-connector-Odoo/+bug/1210775

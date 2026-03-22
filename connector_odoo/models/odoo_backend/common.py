@@ -612,3 +612,38 @@ class OdooBackend(models.Model):
             self.env[model].with_delay().export_batch(backend, filters)
         next_time = import_start_time - timedelta(seconds=IMPORT_DELTA_BUFFER)
         self.write({from_date_field: next_time})
+
+    def import_direct_prefetch(self, model_name, filters=None, force=False,
+                               prefetch_batch_size=500, commit_every=50):
+        """Run a direct (synchronous) import with bulk RPC prefetching.
+
+        This is much faster than the standard delayed import because it
+        fetches remote records in batches of ``prefetch_batch_size`` via
+        a single RPC per batch, then imports each record using the full
+        standard importer pipeline (dependencies, mappers, hooks).
+
+        Usage from Odoo shell::
+
+            backend = env['odoo.backend'].browse(1)
+            result = backend.import_direct_prefetch(
+                'odoo.account.payment',
+                filters=[('write_date', '>', '2024-01-01')],
+            )
+            print(result)  # {'total': 26000, 'imported': 25980, 'errors': [...]}
+
+        :param model_name: binding model name (e.g. 'odoo.account.payment')
+        :param filters: domain filter for remote search
+        :param force: force re-import even if up-to-date
+        :param prefetch_batch_size: records per RPC batch (default 500)
+        :param commit_every: commit every N records (default 50)
+        :returns: dict with import statistics
+        """
+        self.ensure_one()
+        with self.work_on(model_name) as work:
+            importer = work.component(usage="batch.importer")
+            return importer.run_direct_prefetch(
+                filters=filters,
+                force=force,
+                prefetch_batch_size=prefetch_batch_size,
+                commit_every=commit_every,
+            )
