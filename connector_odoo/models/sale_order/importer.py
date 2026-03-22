@@ -60,9 +60,8 @@ class SaleOrderBatchImporter(Component):
     def _import_ids(self, ids):
         """Create a delayed import job for each external id."""
         base_priority = 10
-        for order in ids:
-            order_id = self.backend_adapter.read(order)
-            self._import_record(order_id.id, job_options={"priority": base_priority})
+        for ext_id in ids:
+            self._import_record(ext_id, job_options={"priority": base_priority})
 
     def run(self, filters=None, force=False):
         """Run the synchronization, chunking large date ranges."""
@@ -241,12 +240,11 @@ class SaleOrderLineBatchImporter(Component):
             filters,
             len(updated_ids),
         )
-        for order in updated_ids:
-            order_id = self.backend_adapter.read(order)
+        for ext_id in updated_ids:
             job_options = {
                 "priority": 10,
             }
-            self._import_record(order_id.id, job_options=job_options)
+            self._import_record(ext_id, job_options=job_options)
 
 
 class SaleOrderLineImporter(Component):
