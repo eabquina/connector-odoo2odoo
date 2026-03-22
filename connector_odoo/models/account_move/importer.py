@@ -5,8 +5,13 @@ import logging
 from odoo.addons.component.core import Component
 from odoo.addons.connector.components.mapper import mapping, only_create
 from odoo.addons.connector.exception import IDMissingInBackend
+from odoo.addons.queue_job import exception as queue_job_exception
 
 _logger = logging.getLogger(__name__)
+
+RetryableJobError = getattr(queue_job_exception, "RetryableJobError", None)
+if RetryableJobError is None:
+    RetryableJobError = getattr(queue_job_exception, "JobError", Exception)
 
 
 def _safe_value(record, name, default=False):
@@ -327,6 +332,26 @@ class AccountMoveLineImporter(Component):
         if callable(value_id):
             return False
         return value_id or False
+
+    def _validate_data(self, data):
+        super()._validate_data(data)
+        display_type = data.get("display_type") or "product"
+        non_accountable_types = {"line_section", "line_subsection", "line_note"}
+        if display_type in non_accountable_types:
+            return
+
+        missing = []
+        if not data.get("move_id"):
+            missing.append("move_id")
+        if not data.get("account_id"):
+            missing.append("account_id")
+        if missing:
+            raise RetryableJobError(
+                "Account move line %s missing required mapped fields: %s"
+                % (self.external_id, ", ".join(missing)),
+                seconds=60,
+                ignore_retry=False,
+            )
 
 
 class AccountMoveLineImportMapper(Component):
