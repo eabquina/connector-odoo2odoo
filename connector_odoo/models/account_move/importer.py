@@ -258,6 +258,17 @@ class AccountMoveLineImporter(Component):
     _inherit = "odoo.importer"
     _apply_on = ["odoo.account.move.line"]
 
+    def _get_context(self, data):
+        """Disable move balance validation during individual line import.
+
+        Lines are imported one at a time, so the move will be unbalanced
+        until all lines are present. Odoo 18 validates balance on every
+        line write — we defer this check to _post_if_needed.
+        """
+        ctx = super()._get_context(data)
+        ctx["check_move_validity"] = False
+        return ctx
+
     def _read_remote_fields(self, fields):
         rows = self.work.odoo_api.api.execute_kw(
             "account.move.line",
@@ -386,14 +397,29 @@ class AccountMoveLineImportMapper(Component):
 
     @mapping
     def account_id(self, record):
+        display_type = _safe_value(record, "display_type", False)
+        # Section/note lines don't need an account
+        if display_type in ("line_section", "line_note"):
+            return {}
         external_account_id = self._extract_external_id(record, "account_id")
         if not external_account_id:
+            _logger.warning(
+                "Move line %s has no account_id on remote — "
+                "using default expense account",
+                getattr(record, "id", "n/a"),
+            )
+            # Fallback to a default account to avoid NOT NULL violation
+            default_account = self.env["account.account"].search(
+                [("account_type", "=", "expense")], limit=1
+            )
+            if default_account:
+                return {"account_id": default_account.id}
             return {}
         odoo_id = self._lookup_odoo_id("odoo_account_account", external_account_id)
         if not odoo_id:
             _logger.warning(
-                "Skipping account_id mapping for move line %s: missing account.account binding "
-                "for backend %s external account %s",
+                "Move line %s: account.account binding missing for "
+                "backend %s external account %s — importing dependency",
                 getattr(record, "id", "n/a"),
                 self.backend_record.id,
                 external_account_id,
