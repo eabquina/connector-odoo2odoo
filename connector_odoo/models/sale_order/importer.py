@@ -17,6 +17,16 @@ BATCH_THRESHOLD = 5000
 CHUNK_DAYS = 30
 
 
+def _safe_relation_external_id(record, field_name):
+    value = getattr(record, field_name, False)
+    if not value:
+        return False
+    value_id = getattr(value, "id", False)
+    if callable(value_id):
+        return False
+    return value_id or False
+
+
 class SaleOrderBatchImporter(Component):
     """Import the Odoo Sale Orders.
 
@@ -127,17 +137,22 @@ class SaleOrderImporter(Component):
 
     def _import_dependencies(self, force=False):
         """Import the dependencies for the record"""
-        self._import_dependency(
-            self.odoo_record.pricelist_id.id, "odoo.product.pricelist", force=force
-        )
-        self._import_dependency(
-            self.odoo_record.partner_id.id, "odoo.res.partner", force=force
-        )
-        for partner_id in [
-            self.odoo_record.partner_shipping_id,
-            self.odoo_record.partner_invoice_id,
-        ]:
-            self._import_dependency(partner_id.id, "odoo.res.partner", force=force)
+        pricelist_id = _safe_relation_external_id(self.odoo_record, "pricelist_id")
+        if pricelist_id:
+            self._import_dependency(
+                pricelist_id, "odoo.product.pricelist", force=force
+            )
+
+        partner_id = _safe_relation_external_id(self.odoo_record, "partner_id")
+        if partner_id:
+            self._import_dependency(partner_id, "odoo.res.partner", force=force)
+
+        for field_name in ("partner_shipping_id", "partner_invoice_id"):
+            relation_id = _safe_relation_external_id(self.odoo_record, field_name)
+            if relation_id:
+                self._import_dependency(
+                    relation_id, "odoo.res.partner", force=force
+                )
 
     def _after_import(self, binding, force=False):
         res = super()._after_import(binding, force)
@@ -204,21 +219,31 @@ class SaleOrderImportMapper(Component):
     @mapping
     def pricelist_id(self, record):
         binder = self.binder_for("odoo.product.pricelist")
-        pricelist_id = binder.to_internal(record.pricelist_id.id, unwrap=True)
+        external_id = _safe_relation_external_id(record, "pricelist_id")
+        if not external_id:
+            return {}
+        pricelist_id = binder.to_internal(external_id, unwrap=True)
+        if not pricelist_id:
+            return {}
         return {"pricelist_id": pricelist_id.id}
 
     @mapping
     def partner_id(self, record):
         binder = self.binder_for("odoo.res.partner")
-        return {
-            "partner_id": binder.to_internal(record.partner_id.id, unwrap=True).id,
-            "partner_invoice_id": binder.to_internal(
-                record.partner_invoice_id.id, unwrap=True
-            ).id,
-            "partner_shipping_id": binder.to_internal(
-                record.partner_shipping_id.id, unwrap=True
-            ).id,
+        values = {}
+        relation_map = {
+            "partner_id": "partner_id",
+            "partner_invoice_id": "partner_invoice_id",
+            "partner_shipping_id": "partner_shipping_id",
         }
+        for target_field, source_field in relation_map.items():
+            external_id = _safe_relation_external_id(record, source_field)
+            if not external_id:
+                continue
+            partner = binder.to_internal(external_id, unwrap=True)
+            if partner:
+                values[target_field] = partner.id
+        return values
 
 
 class SaleOrderLineBatchImporter(Component):
