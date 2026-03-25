@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+    <record id="view_odoo_backend_form_helpdesk" model="ir.ui.view">
+        <field name="name">odoo.backend.form.helpdesk</field>
+        <field name="model">odoo.backend</field>
+        <field name="inherit_id" ref="connector_odoo.view_odoo_backend_form" />
+        <field name="arch" type="xml">
+            <data>
+                <xpath expr="//notebook" position="inside">
+                    <page string="Helpdesk" name="helpdesk_sync">
+                        <group name="helpdesk_sync">
+                            <group name="helpdesk_import_all" colspan="4">
+                                <button name="import_helpdesk_all"
+                                        type="object"
+                                        string="Import All Helpdesk Data"
+                                        class="btn-primary"
+                                        help="Import all helpdesk data in dependency order: stages → tags → categories → channels → teams → tickets"
+                                        colspan="4"/>
+                            </group>
+
+                            <!-- Stage Sync -->
+                            <group name="stage_config" string="Stage Sync">
+                                <group name="stage_import">
+                                    <field name="default_import_helpdesk_stage"/>
+                                </group>
+                                <group name="stage_filters">
+                                    <field name="external_helpdesk_stage_domain_filter"/>
+                                </group>
+                                <group name="stage_import_operations">
+                                    <field name="import_helpdesk_stage_from_date" nolabel="0"/>
+                                    <button name="import_helpdesk_stage"
+                                            type="object"
+                                            string="Import Stages"
+                                            class="oe_highlight"
+                                            nolabel="1"/>
+                                </group>
+                            </group>
+
+                            <!-- Tag Sync -->
+                            <group name="tag_config" string="Tag Sync">
+                                <group name="tag_import">
+                                    <field name="default_import_helpdesk_tag"/>
+                                </group>
+                                <group name="tag_filters">
+                                    <field name="external_helpdesk_tag_domain_filter"/>
+                                </group>
+                                <group name="tag_import_operations">
+                                    <field name="import_helpdesk_tag_from_date" nolabel="0"/>
+                                    <button name="import_helpdesk_tag"
+                                            type="object"
+                                            string="Import Tags"
+                                            class="oe_highlight"
+                                            nolabel="1"/>
+                                </group>
+                            </group>
+
+                            <!-- Category Sync -->
+                            <group name="category_config" string="Category Sync">
+                                <group name="category_import">
+                                    <field name="default_import_helpdesk_category"/>
+                                </group>
+                                <group name="category_filters">
+                                    <field name="external_helpdesk_category_domain_filter"/>
+                                </group>
+                                <group name="category_import_operations">
+                                    <field name="import_helpdesk_category_from_date" nolabel="0"/>
+                                    <button name="import_helpdesk_category"
+                                            type="object"
+                                            string="Import Categories"
+                                            class="oe_highlight"
+                                            nolabel="1"/>
+                                </group>
+                            </group>
+
+                            <!-- Channel Sync -->
+                            <group name="channel_config" string="Channel Sync">
+                                <group name="channel_import">
+                                    <field name="default_import_helpdesk_channel"/>
+                                </group>
+                                <group name="channel_filters">
+                                    <field name="external_helpdesk_channel_domain_filter"/>
+                                </group>
+                                <group name="channel_import_operations">
+                                    <field name="import_helpdesk_channel_from_date" nolabel="0"/>
+                                    <button name="import_helpdesk_channel"
+                                            type="object"
+                                            string="Import Channels"
+                                            class="oe_highlight"
+                                            nolabel="1"/>
+                                </group>
+                            </group>
+
+                            <!-- Team Sync -->
+                            <group name="team_config" string="Team Sync">
+                                <group name="team_import">
+                                    <field name="default_import_helpdesk_team"/>
+                                </group>
+                                <group name="team_filters">
+                                    <field name="external_helpdesk_team_domain_filter"/>
+                                </group>
+                                <group name="team_import_operations">
+                                    <field name="import_helpdesk_team_from_date" nolabel="0"/>
+                                    <button name="import_helpdesk_team"
+                                            type="object"
+                                            string="Import Teams"
+                                            class="oe_highlight"
+                                            nolabel="1"/>
+                                </group>
+                            </group>
+
+                            <!-- Ticket Sync -->
+                            <group name="ticket_config" string="Ticket Sync">
+                                <group name="ticket_import">
+                                    <field name="default_import_helpdesk_ticket"/>
+                                </group>
+                                <group name="ticket_filters">
+                                    <field name="external_helpdesk_ticket_domain_filter"/>
+                                </group>
+                                <group name="ticket_import_operations">
+                                    <field name="import_helpdesk_ticket_from_date" nolabel="0"/>
+                                    <button name="import_helpdesk_ticket"
+                                            type="object"
+                                            string="Import Tickets"
+                                            class="oe_highlight"
+                                            nolabel="1"/>
+                                </group>
+                            </group>
+                        </group>
+                    </page>
+                </xpath>
+            </data>
+        </field>
+    </record>
+</odoo>
