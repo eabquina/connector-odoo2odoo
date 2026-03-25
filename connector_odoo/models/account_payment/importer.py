@@ -18,6 +18,14 @@ def _safe_value(record, name, default=False):
     return value
 
 
+def _normalize_payment_type(payment_type):
+    if payment_type == "transfer":
+        return "outbound"
+    if payment_type in ("inbound", "outbound"):
+        return payment_type
+    return "inbound"
+
+
 class AccountPaymentBatchImporter(Component):
     """Import the Odoo Account Payments.
 
@@ -80,9 +88,14 @@ class AccountPaymentImportMapper(Component):
     @only_create
     @mapping
     def payment_type(self, record):
-        payment_type = _safe_value(record, "payment_type", "inbound")
-        if not payment_type:
-            payment_type = "inbound"
+        backend_payment_type = _safe_value(record, "payment_type", "inbound")
+        payment_type = _normalize_payment_type(backend_payment_type)
+        if backend_payment_type != payment_type:
+            _logger.info(
+                "Normalized backend account.payment payment_type %r to %r",
+                backend_payment_type,
+                payment_type,
+            )
         return {"payment_type": payment_type}
 
     @only_create
@@ -153,7 +166,9 @@ class AccountPaymentImportMapper(Component):
         local_journal = binder.to_internal(journal.id, unwrap=True)
         if not local_journal:
             return {}
-        payment_type = _safe_value(record, "payment_type", "inbound")
+        payment_type = _normalize_payment_type(
+            _safe_value(record, "payment_type", "inbound")
+        )
         if payment_type == "inbound":
             method_lines = local_journal.inbound_payment_method_line_ids
         else:
