@@ -25,51 +25,25 @@ class HrLeaveImportMapper(Component):
 
     direct = [
         ("holiday_type", "holiday_type"),
-        ("active_employee", "active_employee"),
-        ("activity_date_deadline", "activity_date_deadline"),
-        ("activity_exception_decoration", "activity_exception_decoration"),
-        ("activity_exception_icon", "activity_exception_icon"),
-        ("activity_state", "activity_state"),
-        ("activity_summary", "activity_summary"),
-        ("activity_type_icon", "activity_type_icon"),
-        ("can_approve", "can_approve"),
-        ("can_cancel", "can_cancel"),
-        ("can_reset", "can_reset"),
-        ("color", "color"),
-        ("display_name", "display_name"),
-        ("duration_display", "duration_display"),
-        ("has_mandatory_day", "has_mandatory_day"),
-        ("has_message", "has_message"),
-        ("is_hatched", "is_hatched"),
-        ("is_striked", "is_striked"),
-        ("is_user_only_responsible", "is_user_only_responsible"),
-        ("last_several_days", "last_several_days"),
-        ("leave_type_increases_duration", "leave_type_increases_duration"),
-        ("leave_type_request_unit", "leave_type_request_unit"),
-        ("leave_type_support_document", "leave_type_support_document"),
-        ("multi_employee", "multi_employee"),
-        ("name", "name"),
         ("notes", "notes"),
-        ("number_of_days", "number_of_days"),
-        ("number_of_hours", "number_of_hours"),
-        ("number_of_days_display", "number_of_days_display"),
-        ("number_of_hours_display", "number_of_hours_display"),
-        ("number_of_hours_text", "number_of_hours_text"),
         ("private_name", "private_name"),
         ("report_note", "report_note"),
-        ("request_unit_half", "request_unit_half"),
         ("request_date_from_period", "request_date_from_period"),
         ("request_hour_from", "request_hour_from"),
         ("request_hour_to", "request_hour_to"),
         ("request_date_from", "request_date_from"),
         ("request_date_to", "request_date_to"),
-        ("supported_attachment_ids_count", "supported_attachment_ids_count"),
-        ("tz", "tz"),
-        ("tz_mismatch", "tz_mismatch"),
-        ("validation_type", "validation_type"),
-        ("date_from", "date_from"),
-        ("date_to", "date_to"),
     ]
+
+    @mapping
+    def request_unit_flags(self, record):
+        # Odoo 17+ computes date_from/date_to from the request-layer fields.
+        # Importing the raw datetimes from another database can conflict with
+        # the local employee calendar and produce date_from > date_to.
+        return {
+            "request_unit_half": bool(record.request_unit_half),
+            "request_unit_hours": bool(getattr(record, "request_unit_hours", False)),
+        }
     
     @mapping
     def employee_id(self, record):
