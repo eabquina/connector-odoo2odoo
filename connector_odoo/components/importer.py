@@ -573,5 +573,9 @@ class DelayedBatchImporter(AbstractComponent):
         # Import jobs talk to a remote Odoo, so temporary outages should not
         # permanently exhaust the queue before the backend is available again.
         job_options.setdefault("max_retries", 0)
+        job_options.setdefault(
+            "identity_key",
+            f"{self.model._name}.import_record:{self.backend_record.id}:{external_id}",
+        )
         delayable = self.model.with_delay(**job_options)
         delayable.import_record(self.backend_record, external_id, **kwargs)
