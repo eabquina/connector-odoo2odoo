@@ -14,6 +14,7 @@ from odoo.addons.connector_odoo.components.backend_adapter import OdooAPI, OdooL
 
 # TODO : verify if needed
 IMPORT_DELTA_BUFFER = 30  # seconds
+ACTIVE_IMPORT_JOB_STATES = ("pending", "enqueued", "started", "wait_dependencies")
 
 _logger = logging.getLogger(__name__)
 
@@ -556,8 +557,24 @@ class OdooBackend(models.Model):
 
     def _import_from_date(self, model, from_date_field):
         import_start_time = datetime.now()
-        filters = [("write_date", "<", import_start_time)]
         for backend in self:
+            backlog = self.env["queue.job"].search_count(
+                [
+                    ("model_name", "=", model),
+                    ("method_name", "in", ("import_batch", "import_record")),
+                    ("state", "in", ACTIVE_IMPORT_JOB_STATES),
+                ]
+            )
+            if backlog:
+                _logger.warning(
+                    "Skipping %s import enqueue for backend %s because %s active jobs already exist.",
+                    model,
+                    backend.id,
+                    backlog,
+                )
+                continue
+
+            filters = [("write_date", "<", import_start_time)]
             from_date = backend[from_date_field]
             if from_date:
                 filters.append(
@@ -569,10 +586,13 @@ class OdooBackend(models.Model):
                 )
             else:
                 from_date = None
-            self.env[model].with_delay().import_batch(backend, filters)
+            identity_key = f"{model}.import_batch:{backend.id}"
+            self.env[model].with_delay(identity_key=identity_key).import_batch(
+                backend, filters
+            )
 
-        next_time = import_start_time - timedelta(seconds=IMPORT_DELTA_BUFFER)
-        self.write({from_date_field: next_time})
+            next_time = import_start_time - timedelta(seconds=IMPORT_DELTA_BUFFER)
+            backend.write({from_date_field: next_time})
 
     def import_external_id(self, model, external_id, force, inmediate=False):
         model = self.env[model]
