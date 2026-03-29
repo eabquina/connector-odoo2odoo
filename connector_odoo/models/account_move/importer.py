@@ -353,6 +353,14 @@ class AccountMoveLineImporter(Component):
                 ignore_retry=False,
             )
 
+    def _update(self, binding, data):
+        """Update move lines with balance checks deferred until the move is complete."""
+        self._validate_data(data)
+        context = {**{"connector_no_export": True}, **self._get_context(data)}
+        binding.with_context(context).write(data)
+        _logger.debug("%d updated from Odoo %s", binding, self.external_id)
+        return
+
 
 class AccountMoveLineImportMapper(Component):
     _name = "odoo.account.move.line.import.mapper"
