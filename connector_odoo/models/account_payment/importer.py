@@ -4,8 +4,13 @@ import logging
 
 from odoo.addons.component.core import Component
 from odoo.addons.connector.components.mapper import mapping, only_create
+from odoo.addons.queue_job import exception as queue_job_exception
 
 _logger = logging.getLogger(__name__)
+
+RetryableJobError = getattr(queue_job_exception, "RetryableJobError", None)
+if RetryableJobError is None:
+    RetryableJobError = getattr(queue_job_exception, "JobError", Exception)
 
 
 def _safe_value(record, name, default=False):
@@ -53,6 +58,73 @@ class AccountPaymentImporter(Component):
     _name = "odoo.account.payment.importer"
     _inherit = "odoo.importer"
     _apply_on = ["odoo.account.payment"]
+
+    def _resolve_payment_method_line(self, data, current_payment=None):
+        method_line_id = data.get("payment_method_line_id")
+        if method_line_id:
+            return method_line_id
+
+        journal_id = data.get("journal_id")
+        if not journal_id and current_payment and current_payment.journal_id:
+            journal_id = current_payment.journal_id.id
+        if not journal_id:
+            return False
+
+        journal = self.env["account.journal"].browse(journal_id).exists()
+        if not journal:
+            return False
+
+        payment_type = data.get("payment_type")
+        if not payment_type and current_payment:
+            payment_type = current_payment.payment_type
+        if not payment_type:
+            payment_type = _safe_value(self.odoo_record, "payment_type", "inbound")
+        payment_type = _normalize_payment_type(payment_type)
+
+        if payment_type == "inbound":
+            method_lines = journal.inbound_payment_method_line_ids
+        else:
+            method_lines = journal.outbound_payment_method_line_ids
+        if method_lines:
+            return method_lines[0].id
+        return False
+
+    def _validate_data(self, data, current_payment=None):
+        super()._validate_data(data)
+        method_line_id = self._resolve_payment_method_line(
+            data, current_payment=current_payment
+        )
+        if method_line_id:
+            data["payment_method_line_id"] = method_line_id
+            return
+
+        journal_id = data.get("journal_id")
+        if not journal_id and current_payment and current_payment.journal_id:
+            journal_id = current_payment.journal_id.id
+        if not journal_id:
+            raise RetryableJobError(
+                "Account payment %s is missing a mapped journal_id"
+                % self.external_id,
+                seconds=60,
+                ignore_retry=False,
+            )
+
+        payment_type = data.get("payment_type")
+        if not payment_type and current_payment:
+            payment_type = current_payment.payment_type
+        payment_type = _normalize_payment_type(
+            payment_type or _safe_value(self.odoo_record, "payment_type", "inbound")
+        )
+        raise RetryableJobError(
+            "Account payment %s has no %s payment method line on local journal %s"
+            % (self.external_id, payment_type, journal_id),
+            seconds=60,
+            ignore_retry=False,
+        )
+
+    def _update(self, binding, data):
+        self._validate_data(data, current_payment=binding.odoo_id)
+        return super()._update(binding, data)
 
     def _import_dependencies(self, force=False):
         """Import the dependencies for the record"""
