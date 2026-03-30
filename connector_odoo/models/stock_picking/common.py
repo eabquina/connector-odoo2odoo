@@ -9,13 +9,8 @@ from odoo import _, api, fields, models
 from odoo.exceptions import ValidationError
 
 from odoo.addons.component.core import Component
-from odoo.addons.queue_job import exception as queue_job_exception
 
 _logger = logging.getLogger(__name__)
-
-RetryableJobError = getattr(queue_job_exception, "RetryableJobError", None)
-if RetryableJobError is None:
-    RetryableJobError = getattr(queue_job_exception, "JobError", Exception)
 
 
 class OdooStockPicking(models.Model):
@@ -129,49 +124,33 @@ class OdooStockPicking(models.Model):
             )
 
     def _set_state(self):
-        for picking in self:
-            state_error = ValidationError(
-                _('Can not set state to "{}" for picking "{}"').format(
-                    picking.backend_state, picking.name
-                )
+        STATE_ERROR = ValidationError(
+            _('Can not set state to "{}" for picking "{}"').format(
+                self.backend_state, self.name
             )
-            if picking.backend_state == picking.odoo_id.state:
-                continue
+        )
+        if self.backend_state == self.odoo_id.state:
+            return
 
-            if picking.backend_state == "done":
-                if picking.state != "assigned":
-                    picking.odoo_id.action_confirm()
-                if picking.state != "assigned":
-                    raise RetryableJobError(
-                        _(
-                            'Picking "%s" is not ready to validate yet; waiting for moves to finish syncing.'
-                        )
-                        % picking.name,
-                        seconds=120,
-                        ignore_retry=False,
-                    )
-                for move_id in picking.move_lines:
+        if self.backend_state == "done":
+            if self.state != "assigned":
+                self.odoo_id.action_confirm()
+            if self.state != "assigned":
+                raise STATE_ERROR
+            else:
+                for move_id in self.move_lines:
                     move_id.quantity_done = move_id.product_uom_qty
-                picking.odoo_id.button_validate()
-                if picking.state != "done":
-                    raise RetryableJobError(
-                        _(
-                            'Picking "%s" could not reach done state yet; retrying later.'
-                        )
-                        % picking.name,
-                        seconds=120,
-                        ignore_retry=False,
-                    )
-            elif picking.backend_state == "auto":
-                picking.odoo_id.action_confirm()
-            elif picking.backend_state == "cancel":
-                picking.odoo_id.action_cancel()
-            elif picking.backend_state == "confirmed":
-                picking.odoo_id.action_confirm()
-            elif picking.backend_state == "approved":
-                picking.odoo_id.action_approve()
-            elif picking.backend_state != picking.odoo_id.state:
-                raise state_error
+                self.odoo_id.button_validate()
+                if self.state != "done":
+                    raise STATE_ERROR
+        elif self.backend_state == "auto":
+            self.odoo_id.action_confirm()
+        elif self.backend_state == "cancel":
+            self.odoo_id.action_cancel()
+        elif self.backend_state == "confirmed":
+            self.odoo_id.action_confirm()
+        elif self.backend_state == "approved":
+            self.odoo_id.action_approve()
 
 
 class StockPicking(models.Model):

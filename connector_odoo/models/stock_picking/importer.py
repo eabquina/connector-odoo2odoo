@@ -128,15 +128,6 @@ class StockPickingImporter(Component):
                 binding.queue_job_ids = [
                     (6, 0, (delayed_line_ids + binding.queue_job_ids.ids))
                 ]
-                binding.with_delay(
-                    priority=20,
-                    eta=300,
-                    identity_key=(
-                        f"odoo.stock.picking.set_state:"
-                        f"{self.backend_record.id}:{binding.id}"
-                    ),
-                    description="Set stock.picking state after move sync",
-                )._set_state()
             else:
                 binding.with_delay()._set_state()
         return res
