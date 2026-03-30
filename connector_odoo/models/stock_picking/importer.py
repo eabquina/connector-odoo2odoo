@@ -53,6 +53,30 @@ class StockPickingImporter(Component):
 
     def _create(self, data):
         """Create binding, reusing existing one if concurrent job created it."""
+        backend_id = data.get("backend_id")
+        company = self.env.user.company_id
+        if not data.get("odoo_id") and data.get("name"):
+            existing_picking = self.env["stock.picking"].search(
+                [
+                    ("name", "=", data["name"]),
+                    ("company_id", "in", [False, company.id]),
+                ],
+                order="company_id desc, id",
+                limit=1,
+            )
+            if existing_picking:
+                existing_binding = self.env["odoo.stock.picking"].search(
+                    [
+                        ("backend_id", "=", backend_id),
+                        ("odoo_id", "=", existing_picking.id),
+                    ],
+                    limit=1,
+                ) if backend_id else self.env["odoo.stock.picking"]
+                if existing_binding:
+                    return existing_binding
+                data = dict(data)
+                data["odoo_id"] = existing_picking.id
+
         if data.get("odoo_id"):
             # Binding on an existing stock.picking must not write inherited
             # stock fields (locations, moves, etc.) as that can invalidate
