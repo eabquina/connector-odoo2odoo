@@ -20,13 +20,6 @@ def _safe_value(record, name, default=False):
     return value
 
 
-def _picking_batch_identity_key(backend_id, purchase_external_id):
-    return (
-        f"odoo.stock.picking.import_batch:purchase:"
-        f"{backend_id}:{purchase_external_id}"
-    )
-
-
 class _RemoteRelationValue:
     def __init__(self, value):
         self.id = value
@@ -356,11 +349,7 @@ class PurchaseOrderLineImporter(Component):
                 )
                 if not len(binding.picking_ids):
                     binding.with_delay()._set_state()
-                self.env["odoo.stock.picking"].with_delay(
-                    identity_key=_picking_batch_identity_key(
-                        self.backend_record.id, self.odoo_record.order_id.id
-                    )
-                ).import_batch(
+                self.env["odoo.stock.picking"].with_delay().import_batch(
                     self.backend_record,
                     [("purchase_id", "=", self.odoo_record.order_id.id)],
                 )

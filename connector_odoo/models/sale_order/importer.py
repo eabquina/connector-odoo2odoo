@@ -27,13 +27,6 @@ def _safe_relation_external_id(record, field_name):
     return value_id or False
 
 
-def _picking_batch_identity_key(backend_id, sale_external_id):
-    return (
-        f"odoo.stock.picking.import_batch:sale:"
-        f"{backend_id}:{sale_external_id}"
-    )
-
-
 class SaleOrderBatchImporter(Component):
     """Import the Odoo Sale Orders.
 
@@ -183,11 +176,7 @@ class SaleOrderImporter(Component):
                 ]
         if not self.backend_record.delayed_import_lines:
             binding._set_state()
-            self.env["odoo.stock.picking"].with_delay(
-                identity_key=_picking_batch_identity_key(
-                    self.backend_record.id, self.odoo_record.id
-                )
-            ).import_batch(
+            self.env["odoo.stock.picking"].with_delay().import_batch(
                 self.backend_record,
                 [("sale_id", "=", self.odoo_record.id)],
             )
@@ -410,11 +399,7 @@ class SaleOrderLineImporter(Component):
                 )
                 if not len(binding.picking_ids):
                     binding._set_state()
-                self.env["odoo.stock.picking"].with_delay(
-                    identity_key=_picking_batch_identity_key(
-                        self.backend_record.id, self.odoo_record.order_id.id
-                    )
-                ).import_batch(
+                self.env["odoo.stock.picking"].with_delay().import_batch(
                     self.backend_record,
                     [("sale_id", "=", self.odoo_record.order_id.id)],
                 )
