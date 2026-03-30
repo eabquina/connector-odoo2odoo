@@ -229,15 +229,17 @@ class OdooPickingMapper(Component):
 
     def _get_local_picking_fallback(self, record):
         """Find an existing local picking by exact name/origin."""
+        company = self.env.user.company_id
+        company_domain = [("company_id", "in", [False, company.id])]
         if getattr(record, "name", False):
             local_pickings = self.env["stock.picking"].search(
-                [("name", "=", record.name)], limit=2
+                company_domain + [("name", "=", record.name)], limit=2
             )
             if len(local_pickings) == 1:
                 return local_pickings
         if getattr(record, "origin", False):
             local_pickings = self.env["stock.picking"].search(
-                [("origin", "=", record.origin)], limit=2
+                company_domain + [("origin", "=", record.origin)], limit=2
             )
             if len(local_pickings) == 1:
                 return local_pickings
