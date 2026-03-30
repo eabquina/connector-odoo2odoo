@@ -12,6 +12,10 @@ from odoo.addons.component_event.components.event import skip_if
 _logger = logging.getLogger(__name__)
 
 
+def _picking_state_identity_key(backend_id, binding_id):
+    return f"odoo.stock.picking._set_state:{backend_id}:{binding_id}"
+
+
 class OdooSaleOrder(models.Model):
     _name = "odoo.sale.order"
     _inherit = "odoo.binding"
@@ -97,7 +101,11 @@ class OdooSaleOrder(models.Model):
             binding_picking = self.env["odoo.stock.picking"].search(
                 [("odoo_id", "=", picking_id.id)]
             )
-            binding_picking.with_delay()._set_state()
+            binding_picking.with_delay(
+                identity_key=_picking_state_identity_key(
+                    self.backend_id.id, binding_picking.id
+                )
+            )._set_state()
 
     def _set_sale_state(self):
         if self.backend_state == self.odoo_id.state:
