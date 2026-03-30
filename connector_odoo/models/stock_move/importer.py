@@ -16,10 +16,6 @@ def _safe_value(record, name, default=False):
     return value
 
 
-def _binding_state_identity_key(model_name, backend_id, binding_id):
-    return f"{model_name}._set_state:{backend_id}:{binding_id}"
-
-
 class StockMoveBatchImporter(Component):
     """Import Stock moves."""
 
@@ -103,34 +99,16 @@ class StockMoveImporter(Component):
             if not pending and ok_purchase:
                 binder = self.binder_for("odoo.purchase.order")
                 purchase_binding = binder.to_internal(binding.picking_id.purchase_id.id)
-                purchase_binding.with_delay(
-                    identity_key=_binding_state_identity_key(
-                        "odoo.purchase.order",
-                        self.backend_record.id,
-                        purchase_binding.id,
-                    )
-                )._set_state()
+                purchase_binding.with_delay()._set_state()
             elif not pending and ok_sale:
                 sale_binding = binding.sale_line_id.order_id.bind_ids[0]
-                sale_binding.with_delay(
-                    identity_key=_binding_state_identity_key(
-                        "odoo.sale.order",
-                        self.backend_record.id,
-                        sale_binding.id,
-                    )
-                )._set_state()
+                sale_binding.with_delay()._set_state()
             # The last stock move of the last picking of picking
             elif not pending:
                 binder = self.binder_for("odoo.stock.picking")
                 picking_binding = binder.to_internal(binding.picking_id.id)
                 if picking_binding:
-                    picking_binding.with_delay(
-                        identity_key=_binding_state_identity_key(
-                            "odoo.stock.picking",
-                            self.backend_record.id,
-                            picking_binding.id,
-                        )
-                    )._set_state()
+                    picking_binding.with_delay()._set_state()
                 else:
                     inventory_binding = self.env[
                         "odoo.stock.inventory.disappeared"
