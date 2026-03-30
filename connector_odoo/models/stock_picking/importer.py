@@ -66,7 +66,7 @@ class StockPickingImporter(Component):
         try:
             with self.env.cr.savepoint():
                 return super()._create(data)
-        except IntegrityError:
+        except IntegrityError as exc:
             backend_id = data.get("backend_id")
             odoo_id = data.get("odoo_id")
             if backend_id and odoo_id:
@@ -79,6 +79,38 @@ class StockPickingImporter(Component):
                 )
                 if existing_binding:
                     return existing_binding
+            if "stock_picking_name_uniq" in str(exc):
+                name = data.get("name")
+                company = self.env.user.company_id
+                if name:
+                    existing_picking = self.env["stock.picking"].search(
+                        [
+                            ("name", "=", name),
+                            ("company_id", "in", [False, company.id]),
+                        ],
+                        order="company_id desc, id",
+                        limit=1,
+                    )
+                    if existing_picking and backend_id:
+                        existing_binding = self.env["odoo.stock.picking"].search(
+                            [
+                                ("backend_id", "=", backend_id),
+                                ("odoo_id", "=", existing_picking.id),
+                            ],
+                            limit=1,
+                        )
+                        if existing_binding:
+                            return existing_binding
+                        bind_data = dict(data)
+                        bind_data["odoo_id"] = existing_picking.id
+                        stock_fields = set(self.env["stock.picking"]._fields)
+                        bind_data = {
+                            key: value
+                            for key, value in bind_data.items()
+                            if key == "odoo_id" or key not in stock_fields
+                        }
+                        with self.env.cr.savepoint():
+                            return super()._create(bind_data)
             raise
 
     def _must_skip(
