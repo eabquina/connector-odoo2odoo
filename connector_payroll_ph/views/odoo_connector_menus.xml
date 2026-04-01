@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+
+    <record id="action_odoo_resource_calendar_change" model="ir.actions.act_window">
+        <field name="name">Odoo Work Schedule Change Requests</field>
+        <field name="res_model">odoo.resource.calendar.change</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
+    <record id="action_odoo_resource_calendar_change_lines" model="ir.actions.act_window">
+        <field name="name">Odoo Work Schedule Change Lines</field>
+        <field name="res_model">odoo.resource.calendar.change.lines</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
+    <record id="action_odoo_resource_calendar_change_type" model="ir.actions.act_window">
+        <field name="name">Odoo Work Schedule Change Types</field>
+        <field name="res_model">odoo.resource.calendar.change.type</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
+    <menuitem
+        id="menu_odoo_external_resource_calendar_change"
+        name="External Work Schedule Requests"
+        parent="connector_odoo_hr_cylix.menu_connector_odoo_hr_cylix_root"
+        action="action_odoo_resource_calendar_change"
+    />
+
+    <menuitem
+        id="menu_odoo_external_resource_calendar_change_lines"
+        name="External Work Schedule Request Lines"
+        parent="connector_odoo_hr_cylix.menu_connector_odoo_hr_cylix_root"
+        action="action_odoo_resource_calendar_change_lines"
+    />
+
+    <menuitem
+        id="menu_odoo_external_resource_calendar_change_type"
+        name="External Work Schedule Request Types"
+        parent="connector_odoo_hr_cylix.menu_connector_odoo_hr_cylix_root"
+        action="action_odoo_resource_calendar_change_type"
+    />
+
+</odoo>
