@@ -13,9 +13,7 @@
     "application": False,
     "installable": True,
     "depends": [
-        "connector_odoo_hr_cylix",
         "working_schedule_adv",
-        "working_schedule_adv_hr_payroll",
     ],
     "data": [
         "security/ir.model.access.csv",
