@@ -13,6 +13,7 @@
     "application": False,
     "installable": True,
     "depends": [
+        "connector_odoo_hr",
         "working_schedule_adv",
     ],
     "data": [
