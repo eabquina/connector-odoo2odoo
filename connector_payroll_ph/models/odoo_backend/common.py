@@ -1,0 +1,128 @@
+from odoo import fields, models
+
+
+class OdooBackend(models.Model):
+    _inherit = "odoo.backend"
+
+    """
+    WORKING SCHEDULE - ADVANCED
+    resource.calendar.change.type
+    resource.calendar.change
+    resource.calendar.change.lines
+    """
+
+    import_from_date_resource_calendar_change_type = fields.Datetime(
+        "Import Work Schedule Change Types From Date"
+    )
+    export_from_date_resource_calendar_change_type = fields.Datetime(
+        "Export Work Schedule Change Types From Date"
+    )
+    default_export_resource_calendar_change_type = fields.Boolean(
+        "Export Work Schedule Change Types"
+    )
+    default_import_resource_calendar_change_type = fields.Boolean(
+        "Import Work Schedule Change Types"
+    )
+    local_domain_filter_resource_calendar_change_type = fields.Char(default="[]")
+    external_domain_filter_resource_calendar_change_type = fields.Char(
+        default="[]",
+        help="""Filter in the Odoo Destination""",
+    )
+
+    import_from_date_resource_calendar_change = fields.Datetime(
+        "Import Work Schedule Change Requests From Date"
+    )
+    export_from_date_resource_calendar_change = fields.Datetime(
+        "Export Work Schedule Change Requests From Date"
+    )
+    default_export_resource_calendar_change = fields.Boolean(
+        "Export Work Schedule Change Requests"
+    )
+    default_import_resource_calendar_change = fields.Boolean(
+        "Import Work Schedule Change Requests"
+    )
+    local_domain_filter_resource_calendar_change = fields.Char(default="[]")
+    external_domain_filter_resource_calendar_change = fields.Char(
+        default="[]",
+        help="""Filter in the Odoo Destination""",
+    )
+
+    import_from_date_resource_calendar_change_lines = fields.Datetime(
+        "Import Work Schedule Change Lines From Date"
+    )
+    export_from_date_resource_calendar_change_lines = fields.Datetime(
+        "Export Work Schedule Change Lines From Date"
+    )
+    default_export_resource_calendar_change_lines = fields.Boolean(
+        "Export Work Schedule Change Lines"
+    )
+    default_import_resource_calendar_change_lines = fields.Boolean(
+        "Import Work Schedule Change Lines"
+    )
+    local_domain_filter_resource_calendar_change_lines = fields.Char(default="[]")
+    external_domain_filter_resource_calendar_change_lines = fields.Char(
+        default="[]",
+        help="""Filter in the Odoo Destination""",
+    )
+
+    """
+        Import Actions
+    """
+
+    def import_resource_calendar_change_type(self):
+        if not self.default_import_resource_calendar_change_type:
+            return False
+        self._import_from_date(
+            "odoo.resource.calendar.change.type",
+            "import_from_date_resource_calendar_change_type",
+        )
+        return True
+
+    def import_resource_calendar_change(self):
+        if not self.default_import_resource_calendar_change:
+            return False
+        self._import_from_date(
+            "odoo.resource.calendar.change",
+            "import_from_date_resource_calendar_change",
+        )
+        return True
+
+    def import_resource_calendar_change_lines(self):
+        if not self.default_import_resource_calendar_change_lines:
+            return False
+        self._import_from_date(
+            "odoo.resource.calendar.change.lines",
+            "import_from_date_resource_calendar_change_lines",
+        )
+        return True
+
+    """
+        Export Actions
+    """
+
+    def export_resource_calendar_change_type(self):
+        if not self.default_export_resource_calendar_change_type:
+            return False
+        self._export_from_date(
+            "odoo.resource.calendar.change.type",
+            "export_from_date_resource_calendar_change_type",
+        )
+        return True
+
+    def export_resource_calendar_change(self):
+        if not self.default_export_resource_calendar_change:
+            return False
+        self._export_from_date(
+            "odoo.resource.calendar.change",
+            "export_from_date_resource_calendar_change",
+        )
+        return True
+
+    def export_resource_calendar_change_lines(self):
+        if not self.default_export_resource_calendar_change_lines:
+            return False
+        self._export_from_date(
+            "odoo.resource.calendar.change.lines",
+            "export_from_date_resource_calendar_change_lines",
+        )
+        return True

@@ -2,9 +2,9 @@
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
 
 {
-    "name": "Connector Odoo - HR Cylix",
+    "name": "Connector Odoo - Payroll PH",
     "summary": """
-        Connector Module for Odoo To Odoo scenarios for HR""",
+        Connector Module for Odoo To Odoo scenarios for Payroll PH""",
     "version": "19.0.1.0.0",
     "website": "https://github.com/OCA/connector-odoo2odoo",
     "category": "Connector",
@@ -13,15 +13,18 @@
     "application": False,
     "installable": True,
     "depends": [
-        "connector_odoo_hr",
-        "ohrms_overtime_ent",
+        "connector_odoo_hr_cylix",
+        "working_schedule_adv",
+        "working_schedule_adv_hr_payroll",
     ],
     "data": [
         "security/ir.model.access.csv",
         "views/odoo_backend.xml",
         "views/odoo_connector_menus.xml",
-        "views/hr_attendance_late.xml",
-        "views/hr_overtime.xml",
+        "views/resource_calendar_change_type.xml",
+        "views/resource_calendar_change.xml",
+        "views/resource_calendar_change_lines.xml",
     ],
     "demo": [],
+    "qweb": [],
 }
