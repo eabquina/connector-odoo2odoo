@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+
+    <record id="view_resource_calendar_change_connector_form" model="ir.ui.view">
+        <field name="name">resource.calendar.change.form.inherit.connector</field>
+        <field name="model">resource.calendar.change</field>
+        <field name="inherit_id" ref="working_schedule_adv.resource_calendar_change_form_view" />
+        <field name="arch" type="xml">
+            <xpath expr="/form/sheet/notebook" position="inside">
+                <page
+                    string="Connectors"
+                    name="connector"
+                    groups="connector.group_connector_manager"
+                >
+                    <group string="Odoo Bindings">
+                        <field name="bind_ids" readonly="0" nolabel="1" colspan="2" />
+                    </group>
+                </page>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="odoo_resource_calendar_change_tree_view" model="ir.ui.view">
+        <field name="name">odoo.resource.calendar.change.tree</field>
+        <field name="model">odoo.resource.calendar.change</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="name" />
+                <field name="employee_id" />
+                <field name="type_id" />
+                <field name="date_from" />
+                <field name="date_to" />
+                <field name="state" />
+                <field name="backend_id" />
+                <field name="external_id" />
+                <button name="resync" type="object" string="Resync" />
+            </tree>
+        </field>
+    </record>
+
+    <record id="odoo_resource_calendar_change_form_view" model="ir.ui.view">
+        <field name="name">odoo.resource.calendar.change.form</field>
+        <field name="model">odoo.resource.calendar.change</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="resync" type="object" string="Resync" />
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="name" readonly="1" />
+                        </h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="employee_id" />
+                            <field name="type_id" />
+                            <field name="state" />
+                        </group>
+                        <group>
+                            <field name="odoo_id" readonly="0" />
+                            <field name="backend_id" readonly="1" />
+                            <field name="external_id" readonly="0" />
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+</odoo>
