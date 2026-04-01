@@ -22,21 +22,21 @@
     <menuitem
         id="menu_odoo_external_resource_calendar_change"
         name="External Work Schedule Requests"
-        parent="connector_odoo_hr_cylix.menu_connector_odoo_hr_cylix_root"
+        parent="connector_odoo_hr.menu_connector_odoo_hr_root"
         action="action_odoo_resource_calendar_change"
     />
 
     <menuitem
         id="menu_odoo_external_resource_calendar_change_lines"
         name="External Work Schedule Request Lines"
-        parent="connector_odoo_hr_cylix.menu_connector_odoo_hr_cylix_root"
+        parent="connector_odoo_hr.menu_connector_odoo_hr_root"
         action="action_odoo_resource_calendar_change_lines"
     />
 
     <menuitem
         id="menu_odoo_external_resource_calendar_change_type"
         name="External Work Schedule Request Types"
-        parent="connector_odoo_hr_cylix.menu_connector_odoo_hr_cylix_root"
+        parent="connector_odoo_hr.menu_connector_odoo_hr_root"
         action="action_odoo_resource_calendar_change_type"
     />
 

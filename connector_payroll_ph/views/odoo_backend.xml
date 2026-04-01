@@ -3,7 +3,7 @@
     <record id="view_odoo_backend_form_payroll_ph" model="ir.ui.view">
         <field name="name">odoo.backend.form.payroll.ph</field>
         <field name="model">odoo.backend</field>
-        <field name="inherit_id" ref="connector_odoo_hr_cylix.view_odoo_backend_form_employee" />
+        <field name="inherit_id" ref="connector_odoo_hr.view_odoo_backend_form_employee" />
         <field name="arch" type="xml">
             <xpath expr="//notebook" position="inside">
                 <page string="Work Schedule" name="work_schedule">
