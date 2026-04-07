@@ -82,7 +82,10 @@
                             </tree>
                         </field>
                     </group>
-                    <group string="Delayed jobs">
+                    <group
+                        string="Delayed jobs"
+                        groups="queue_job.group_queue_job_manager"
+                    >
                         <field
                             name="queue_job_ids"
                             readonly="1"
