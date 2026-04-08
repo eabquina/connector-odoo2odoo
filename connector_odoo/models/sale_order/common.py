@@ -134,6 +134,7 @@ class SaleOrder(models.Model):
 
     queue_job_ids = fields.Many2many(
         comodel_name="queue.job",
+        groups="queue_job.group_queue_job_manager",
     )
 
     def action_confirm(self):
