@@ -93,11 +93,15 @@
                         </tree>
                     </field>
 
-                    <group string="Delayed jobs">
+                    <group
+                        string="Delayed jobs"
+                        groups="queue_job.group_queue_job_manager"
+                    >
                         <field
                             name="queue_job_ids"
                             readonly="1"
                             nolabel="1"
+                            groups="queue_job.group_queue_job_manager"
                             invisible="queue_job_ids == False"
                         >
                             <tree>
