@@ -35,14 +35,13 @@ class OdooStockPicking(models.Model):
 
     def _compute_import_state(self):
         for picking_id in self:
+            queue_jobs = picking_id.sudo().queue_job_ids
             waiting = len(
-                picking_id.queue_job_ids.filtered(
+                queue_jobs.filtered(
                     lambda j: j.state in ("pending", "enqueued", "started")
                 )
             )
-            error = len(
-                picking_id.queue_job_ids.filtered(lambda j: j.state == "failed")
-            )
+            error = len(queue_jobs.filtered(lambda j: j.state == "failed"))
             if waiting:
                 picking_id.import_state = "waiting"
             elif error:
