@@ -103,7 +103,7 @@ class OdooAccountMove(models.Model):
             remote_line_ids = binding._get_remote_move_line_ids()
             binding.backend_move_line_count = len(remote_line_ids)
             for remote_line_id in remote_line_ids:
-                self.env["odoo.account.move.line"].with_delay().import_record(
+                self.env["odoo.account.move.line"].with_delay(priority=12).import_record(
                     binding.backend_id, remote_line_id, force=True
                 )
         return True
@@ -156,7 +156,14 @@ class OdooAccountMove(models.Model):
                 if expected <= 0 and local_line_count:
                     expected = local_line_count
                 if expected and effective_actual < expected:
-                    binding.with_delay(priority=12).sync_move_lines()
+                    try:
+                        binding.sync_move_lines()
+                    except Exception as err:
+                        binding._raise_retryable(
+                            "Retry post account.move %s: line sync failed (%s)"
+                            % (binding.odoo_id.id, str(err)),
+                            seconds=300,
+                        )
                     retry = binding._current_job_retry()
                     message = (
                         "Retry post account.move %s (%d/%d lines)"
@@ -184,7 +191,14 @@ class OdooAccountMove(models.Model):
                     )
                     binding._raise_retryable(message, seconds=300)
                 if not expected and not binding.odoo_id.line_ids:
-                    binding.with_delay(priority=12).sync_move_lines()
+                    try:
+                        binding.sync_move_lines()
+                    except Exception as err:
+                        binding._raise_retryable(
+                            "Retry post account.move %s: waiting for line metadata (%s)"
+                            % (binding.odoo_id.id, str(err)),
+                            seconds=300,
+                        )
                     binding._raise_retryable(
                         "Retry post account.move %s: waiting for line metadata"
                         % binding.odoo_id.id,
