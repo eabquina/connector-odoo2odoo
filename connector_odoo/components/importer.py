@@ -74,6 +74,12 @@ class OdooImporter(AbstractComponent):
         self.external_id = None
         self.odoo_record = None
 
+    def _is_forbidden_remote_error(self, err):
+        if isinstance(err, urllib.error.HTTPError) and getattr(err, "code", None) == 403:
+            return True
+        message = str(err or "")
+        return "403" in message and "Forbidden" in message
+
     def _get_odoo_data(self):
         """Return the raw Odoo data for ``self.external_id``"""
         return self.backend_adapter.read(self.external_id)
@@ -359,6 +365,14 @@ class OdooImporter(AbstractComponent):
             socket.timeout,
             TimeoutError,
         ) as err:
+            if self._is_forbidden_remote_error(err):
+                _logger.warning(
+                    "Skipping import of %s(%s) due to HTTP 403 Forbidden: %s",
+                    self.work.model_name,
+                    external_id,
+                    err,
+                )
+                return _("Skipped: remote backend access is forbidden (HTTP 403).")
             raise RetryableJobError(
                 "Transient network error communicating with remote Odoo: %s" % err,
                 seconds=60,
