@@ -1,6 +1,7 @@
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
 
 import logging
+from urllib.error import HTTPError
 
 from odoo import fields, models
 
@@ -118,6 +119,12 @@ class OdooAccountMove(models.Model):
             pass
         raise err
 
+    def _is_forbidden_remote_error(self, err):
+        if isinstance(err, HTTPError) and getattr(err, "code", None) == 403:
+            return True
+        message = str(err or "")
+        return "403" in message and "Forbidden" in message
+
     def _current_job_retry(self):
         job_uuid = self.env.context.get("job_uuid")
         if not job_uuid:
@@ -183,6 +190,11 @@ class OdooAccountMove(models.Model):
                     try:
                         binding.sync_move_lines()
                     except Exception as err:
+                        if binding._is_forbidden_remote_error(err):
+                            raise Exception(
+                                "Post aborted for account.move %s: remote backend access forbidden (HTTP 403)."
+                                % binding.odoo_id.id
+                            )
                         binding._raise_retryable(
                             "Retry post account.move %s: line sync failed (%s)"
                             % (binding.odoo_id.id, str(err)),
@@ -225,6 +237,11 @@ class OdooAccountMove(models.Model):
                     try:
                         binding.sync_move_lines()
                     except Exception as err:
+                        if binding._is_forbidden_remote_error(err):
+                            raise Exception(
+                                "Post aborted for account.move %s: remote metadata access forbidden (HTTP 403)."
+                                % binding.odoo_id.id
+                            )
                         binding._raise_retryable(
                             "Retry post account.move %s: waiting for line metadata (%s)"
                             % (binding.odoo_id.id, str(err)),
