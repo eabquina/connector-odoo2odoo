@@ -125,6 +125,22 @@ class OdooAccountMove(models.Model):
         message = str(err or "")
         return "403" in message and "Forbidden" in message
 
+    def _skip_post_due_to_forbidden(self, binding, err, scope="access"):
+        _logger.warning(
+            "Skipping post for account.move %s (binding %s): remote backend %s forbidden (HTTP 403): %s",
+            binding.odoo_id.id,
+            binding.id,
+            scope,
+            err,
+        )
+        if binding.post_retry_no_progress_count or binding.post_last_effective_line_count:
+            binding.write(
+                {
+                    "post_retry_no_progress_count": 0,
+                    "post_last_effective_line_count": 0,
+                }
+            )
+
     def _current_job_retry(self):
         job_uuid = self.env.context.get("job_uuid")
         if not job_uuid:
@@ -191,10 +207,8 @@ class OdooAccountMove(models.Model):
                         binding.sync_move_lines()
                     except Exception as err:
                         if binding._is_forbidden_remote_error(err):
-                            raise Exception(
-                                "Post aborted for account.move %s: remote backend access forbidden (HTTP 403)."
-                                % binding.odoo_id.id
-                            )
+                            binding._skip_post_due_to_forbidden(binding, err, scope="access")
+                            continue
                         binding._raise_retryable(
                             "Retry post account.move %s: line sync failed (%s)"
                             % (binding.odoo_id.id, str(err)),
@@ -238,10 +252,8 @@ class OdooAccountMove(models.Model):
                         binding.sync_move_lines()
                     except Exception as err:
                         if binding._is_forbidden_remote_error(err):
-                            raise Exception(
-                                "Post aborted for account.move %s: remote metadata access forbidden (HTTP 403)."
-                                % binding.odoo_id.id
-                            )
+                            binding._skip_post_due_to_forbidden(binding, err, scope="metadata")
+                            continue
                         binding._raise_retryable(
                             "Retry post account.move %s: waiting for line metadata (%s)"
                             % (binding.odoo_id.id, str(err)),
