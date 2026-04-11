@@ -5,6 +5,11 @@ import logging
 from odoo import fields, models
 
 from odoo.addons.component.core import Component
+from odoo.addons.queue_job import exception as queue_job_exception
+
+RetryableJobError = getattr(queue_job_exception, "RetryableJobError", None)
+if RetryableJobError is None:
+    RetryableJobError = getattr(queue_job_exception, "JobError", Exception)
 
 _logger = logging.getLogger(__name__)
 
@@ -102,44 +107,91 @@ class OdooAccountMove(models.Model):
                 )
         return True
 
+    def _raise_retryable(self, message, seconds=300):
+        err = RetryableJobError(message)
+        try:
+            setattr(err, "seconds", seconds)
+        except Exception:
+            pass
+        raise err
+
+    def _enqueue_missing_move_lines(self, binding, remote_line_ids):
+        line_model = self.env["odoo.account.move.line"]
+        existing_external_ids = set(
+            line_model.search(
+                [
+                    ("backend_id", "=", binding.backend_id.id),
+                    ("move_id", "=", binding.odoo_id.id),
+                ]
+            ).mapped("external_id")
+        )
+        missing_remote_ids = [
+            line_id for line_id in remote_line_ids if line_id not in existing_external_ids
+        ]
+        for line_id in missing_remote_ids:
+            line_model.with_delay(priority=12).import_record(
+                binding.backend_id,
+                line_id,
+                force=True,
+            )
+        return len(missing_remote_ids)
+
     def _post_if_needed(self):
         for binding in self:
             if binding.backend_state == "posted" and binding.odoo_id.state == "draft":
                 # Check that all move lines have been synced before posting
-                expected = binding.backend_move_line_count
+                remote_line_ids = binding._get_remote_move_line_ids()
+                expected = len(remote_line_ids)
+                if binding.backend_move_line_count != expected:
+                    binding.backend_move_line_count = expected
                 actual = binding.synced_move_line_count
                 if expected and actual < expected:
-                    _logger.info(
-                        "Deferring post for account.move %s (binding %s): "
-                        "%d/%d lines synced",
-                        binding.odoo_id.id,
-                        binding.id,
-                        actual,
-                        expected,
+                    enqueued_missing = self._enqueue_missing_move_lines(
+                        binding,
+                        remote_line_ids,
                     )
-                    binding.with_delay(
-                        priority=20,
-                        eta=300,
-                        description="Retry post account.move %s (%d/%d lines)"
-                        % (binding.odoo_id.id, actual, expected),
-                    )._post_if_needed()
-                    continue
-                if not binding.odoo_id.line_ids:
+                    message = (
+                        "Retry post account.move %s (%d/%d lines)"
+                        % (binding.odoo_id.id, actual, expected)
+                    )
+                    _logger.info(
+                        "%s. Enqueued %d missing line import(s).",
+                        message,
+                        enqueued_missing,
+                    )
+                    binding._raise_retryable(message, seconds=300)
+                if expected and not binding.odoo_id.line_ids:
+                    message = (
+                        "Retry post account.move %s: no local lines present yet"
+                        % binding.odoo_id.id
+                    )
+                    _logger.warning(
+                        "%s (binding %s)",
+                        message,
+                        binding.id,
+                    )
+                    binding._raise_retryable(message, seconds=300)
+                if not expected and not binding.odoo_id.line_ids:
                     _logger.warning(
                         "Skipping post for account.move %s (binding %s): "
-                        "no lines present",
+                        "remote move has no lines",
                         binding.odoo_id.id,
                         binding.id,
                     )
                     continue
                 try:
                     binding.odoo_id.action_post()
-                except Exception:
+                except Exception as err:
                     _logger.warning(
                         "Could not post account.move %s (binding %s)",
                         binding.odoo_id.id,
                         binding.id,
                         exc_info=True,
+                    )
+                    binding._raise_retryable(
+                        "Retry post account.move %s after post error: %s"
+                        % (binding.odoo_id.id, str(err)),
+                        seconds=120,
                     )
 
 
