@@ -136,52 +136,26 @@ class OdooAccountMove(models.Model):
             )
         return len(missing_remote_ids)
 
-    def _try_get_remote_move_line_ids(self, binding):
-        try:
-            return binding._get_remote_move_line_ids(), None
-        except Exception as err:
-            _logger.warning(
-                "Could not fetch remote move lines for account.move %s (binding %s): %s",
-                binding.odoo_id.id,
-                binding.id,
-                err,
-            )
-            return None, err
-
     def _post_if_needed(self):
         for binding in self:
             if binding.backend_state == "posted" and binding.odoo_id.state == "draft":
-                # Check that all move lines have been synced before posting
-                remote_line_ids, remote_err = self._try_get_remote_move_line_ids(binding)
+                # Avoid remote RPC calls here: this method can run in high-volume
+                # queue retries and should not be blocked by backend auth/network errors.
                 expected = binding.backend_move_line_count or 0
-                if remote_line_ids is not None:
-                    expected = len(remote_line_ids)
-                    if binding.backend_move_line_count != expected:
-                        binding.backend_move_line_count = expected
                 actual = binding.synced_move_line_count
+                if expected <= 0 and binding.odoo_id.line_ids:
+                    expected = len(binding.odoo_id.line_ids)
                 if expected and actual < expected:
-                    enqueued_missing = 0
-                    if remote_line_ids is not None:
-                        enqueued_missing = self._enqueue_missing_move_lines(
-                            binding,
-                            remote_line_ids,
-                        )
+                    binding.with_delay(priority=12).sync_move_lines()
                     message = (
                         "Retry post account.move %s (%d/%d lines)"
                         % (binding.odoo_id.id, actual, expected)
                     )
                     _logger.info(
-                        "%s. Enqueued %d missing line import(s).",
+                        "%s. Triggered line sync job.",
                         message,
-                        enqueued_missing,
                     )
                     binding._raise_retryable(message, seconds=300)
-                if remote_err and expected == 0 and not binding.odoo_id.line_ids:
-                    binding._raise_retryable(
-                        "Retry post account.move %s: remote line lookup unavailable (%s)"
-                        % (binding.odoo_id.id, str(remote_err)),
-                        seconds=300,
-                    )
                 if expected and not binding.odoo_id.line_ids:
                     message = (
                         "Retry post account.move %s: no local lines present yet"
@@ -194,13 +168,12 @@ class OdooAccountMove(models.Model):
                     )
                     binding._raise_retryable(message, seconds=300)
                 if not expected and not binding.odoo_id.line_ids:
-                    _logger.warning(
-                        "Skipping post for account.move %s (binding %s): "
-                        "remote move has no lines",
-                        binding.odoo_id.id,
-                        binding.id,
+                    binding.with_delay(priority=12).sync_move_lines()
+                    binding._raise_retryable(
+                        "Retry post account.move %s: waiting for line metadata"
+                        % binding.odoo_id.id,
+                        seconds=300,
                     )
-                    continue
                 try:
                     binding.odoo_id.action_post()
                 except Exception as err:
