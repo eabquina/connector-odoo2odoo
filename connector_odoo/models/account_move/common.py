@@ -35,7 +35,9 @@ class OdooAccountMove(models.Model):
         string="Synced Move Line Count",
         compute="_compute_synced_move_line_count",
     )
-    _MAX_POST_RETRIES_WITHOUT_PROGRESS = 8
+    post_retry_no_progress_count = fields.Integer(default=0)
+    post_last_effective_line_count = fields.Integer(default=0)
+    _MAX_POST_RETRIES_WITHOUT_PROGRESS = 3
 
     def _compute_synced_move_line_count(self):
         line_model = self.env["odoo.account.move.line"]
@@ -123,6 +125,28 @@ class OdooAccountMove(models.Model):
         job = self.env["queue.job"].sudo().search([("uuid", "=", job_uuid)], limit=1)
         return job.retry if job and "retry" in job._fields else 0
 
+    def _update_post_progress_counters(self, binding, effective_actual):
+        last_count = binding.post_last_effective_line_count or 0
+        no_progress = binding.post_retry_no_progress_count or 0
+
+        if effective_actual > last_count:
+            binding.write(
+                {
+                    "post_last_effective_line_count": effective_actual,
+                    "post_retry_no_progress_count": 0,
+                }
+            )
+            return 0
+
+        no_progress += 1
+        binding.write(
+            {
+                "post_retry_no_progress_count": no_progress,
+                "post_last_effective_line_count": effective_actual,
+            }
+        )
+        return no_progress
+
     def _enqueue_missing_move_lines(self, binding, remote_line_ids):
         line_model = self.env["odoo.account.move.line"]
         existing_external_ids = set(
@@ -164,7 +188,10 @@ class OdooAccountMove(models.Model):
                             % (binding.odoo_id.id, str(err)),
                             seconds=300,
                         )
-                    retry = binding._current_job_retry()
+                    no_progress = binding._update_post_progress_counters(
+                        binding,
+                        effective_actual,
+                    )
                     message = (
                         "Retry post account.move %s (%d/%d lines)"
                         % (binding.odoo_id.id, effective_actual, expected)
@@ -173,11 +200,15 @@ class OdooAccountMove(models.Model):
                         "%s. Triggered line sync job.",
                         message,
                     )
-                    if retry >= self._MAX_POST_RETRIES_WITHOUT_PROGRESS:
-                        raise Exception(
-                            "Post aborted for account.move %s after %d retries without line progress (%d/%d)."
-                            % (binding.odoo_id.id, retry, effective_actual, expected)
+                    if no_progress >= self._MAX_POST_RETRIES_WITHOUT_PROGRESS:
+                        _logger.warning(
+                            "Stopping retry loop for account.move %s after %d no-progress attempt(s) (%d/%d lines).",
+                            binding.odoo_id.id,
+                            no_progress,
+                            effective_actual,
+                            expected,
                         )
+                        continue
                     binding._raise_retryable(message, seconds=300)
                 if expected and not binding.odoo_id.line_ids:
                     message = (
@@ -206,6 +237,13 @@ class OdooAccountMove(models.Model):
                     )
                 try:
                     binding.odoo_id.action_post()
+                    if binding.post_retry_no_progress_count or binding.post_last_effective_line_count:
+                        binding.write(
+                            {
+                                "post_retry_no_progress_count": 0,
+                                "post_last_effective_line_count": 0,
+                            }
+                        )
                 except Exception as err:
                     _logger.warning(
                         "Could not post account.move %s (binding %s)",
