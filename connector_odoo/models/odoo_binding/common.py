@@ -1,8 +1,13 @@
 # © 2013-2017 Guewen Baconnier,Camptocamp SA,Akretion
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
 
+import logging
+from urllib.error import HTTPError
+
 from odoo import _, api, fields, models
 from odoo.exceptions import ValidationError
+
+_logger = logging.getLogger(__name__)
 
 
 class OdooBinding(models.AbstractModel):
@@ -115,13 +120,31 @@ class OdooBinding(models.AbstractModel):
         return res
 
     @api.model
+    def _is_forbidden_remote_error(self, err):
+        if isinstance(err, HTTPError) and getattr(err, "code", None) == 403:
+            return True
+        message = str(err or "")
+        return "403" in message and "Forbidden" in message
+
+    @api.model
     def import_batch(self, backend, filters=None, force=False):
         """Prepare the import of records modified on Odoo"""
         if filters is None:
             filters = {}
-        with backend.work_on(self._name) as work:
-            importer = work.component(usage="batch.importer")
-            return importer.run(filters=filters, force=force or backend.force)
+        try:
+            with backend.work_on(self._name) as work:
+                importer = work.component(usage="batch.importer")
+                return importer.run(filters=filters, force=force or backend.force)
+        except Exception as err:
+            if self._is_forbidden_remote_error(err):
+                _logger.warning(
+                    "Skipping batch import for model %s on backend %s due to HTTP 403 Forbidden: %s",
+                    self._name,
+                    backend.id,
+                    err,
+                )
+                return []
+            raise
 
     @api.model
     def import_record(self, backend, external_id, force=False):
