@@ -1,6 +1,7 @@
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
 
 import logging
+from urllib.error import HTTPError
 
 from odoo.addons.component.core import Component
 from odoo.addons.connector.components.mapper import mapping, only_create
@@ -72,9 +73,25 @@ class AccountMoveBatchImporter(Component):
     _inherit = "odoo.delayed.batch.importer"
     _apply_on = ["odoo.account.move"]
 
+    def _is_forbidden_remote_error(self, err):
+        if isinstance(err, HTTPError) and getattr(err, "code", None) == 403:
+            return True
+        message = str(err or "")
+        return "403" in message and "Forbidden" in message
+
     def run(self, filters=None, force=False):
         """Run the synchronization"""
-        updated_ids = self.backend_adapter.search(filters)
+        try:
+            updated_ids = self.backend_adapter.search(filters)
+        except Exception as err:
+            if self._is_forbidden_remote_error(err):
+                _logger.warning(
+                    "Skipping account.move batch import for backend %s due to HTTP 403 Forbidden: %s",
+                    self.backend_record.id,
+                    err,
+                )
+                return []
+            raise
         _logger.info(
             "search for odoo account moves %s returned %s items",
             filters,
