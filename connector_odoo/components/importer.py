@@ -20,8 +20,6 @@ from odoo import _, fields
 
 from odoo.addons.component.core import AbstractComponent
 from odoo.addons.connector.exception import IDMissingInBackend
-from odoo.addons.queue_job.exception import NothingToDoJob
-
 _logger = logging.getLogger(__name__)
 
 
@@ -97,14 +95,7 @@ class OdooImporter(AbstractComponent):
                 importer = self.component(
                     usage="record.importer", model_name=binding_model
                 )
-            try:
-                importer.run(external_id)
-            except NothingToDoJob:
-                _logger.info(
-                    "Dependency import of %s(%s) has been ignored.",
-                    binding_model._name,
-                    external_id,
-                )
+            importer.run(external_id)
 
     def _import_dependencies(self, force=False):
         """Import the dependencies for the record
