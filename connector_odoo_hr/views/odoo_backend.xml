@@ -183,11 +183,9 @@
                         <group name="hr_expense_import_export" string="Import/Export Config">          
                             <group name="import_expenses">
                                 <field name="default_import_hr_expense"/>
-                                <field name="default_import_hr_expense_sheet"/>
                             </group>
                             <group name="export_hr_expense">
                                 <field name="default_export_hr_expense"/>
-                                <field name="default_export_hr_expense_sheet"/>
                             </group>
                         </group>
                         <group name="hr_expense_import_export_filters" string="Import/Export Filters">
@@ -205,17 +203,6 @@
                                         help="Import Expense"
                                         nolabel="1" />
                             </group>
-                            <group name="hr_expense_import_hr_expense_sheet">
-                                <field  name="import_from_date_hr_expense_sheet"
-                                        nolabel="0" />
-                                <button name="import_hr_expense_sheet"
-                                        type="object"
-                                        string="Import Expense Reports"
-                                        class="oe_highlight"
-                                        help="Import Expense Reports"
-                                        nolabel="1" />
-                            </group>
-                            
                         </group>
                     </group>
                     </page>

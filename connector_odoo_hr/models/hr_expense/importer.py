@@ -89,13 +89,6 @@ class HrExpenseImportMapper(Component):
             product_id = binder.to_internal(record.product_id.id, unwrap=True)
             return {"product_id": product_id.id}
 
-    @mapping
-    def sheet_id(self, record):
-        if record.sheet_id:
-            binder = self.binder_for("odoo.hr.expense.sheet")
-            sheet_id = binder.to_internal(record.sheet_id.id, unwrap=True)
-            return {"sheet_id": sheet_id.id}
-
 class HrExpenseImporter(Component):
     _name = "odoo.hr.expense.importer"
     _inherit = "odoo.importer"
@@ -116,10 +109,3 @@ class HrExpenseImporter(Component):
             self._import_dependency(
                 self.odoo_record.product_id.id, "odoo.product.product", force=force
             )
-            
-        if self.odoo_record.sheet_id:
-            _logger.info("Importing sheet_id for expense %s", self.odoo_record.id)
-            self._import_dependency(
-                self.odoo_record.sheet_id.id, "odoo.hr.expense.sheet", force=force
-            )
-        
