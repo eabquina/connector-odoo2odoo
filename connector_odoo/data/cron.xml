@@ -9,7 +9,6 @@
         <field name="code">model.import_purchase_orders()</field>
         <field name="interval_type">days</field>
         <field name="numbercall">-1</field>
-        <field name="doall" eval="False" />
         <field name="model_id" ref="connector_odoo.model_odoo_backend" />
     </record>
 
