@@ -91,8 +91,8 @@ class HrHrLeaveExportMapper(Component):
         ("can_cancel", "can_cancel"),
         ("can_reset", "can_reset"),
         ("color", "color"),
-        ("date_from", "date_from"),
-        ("date_to", "date_to"),
+        # date_from/date_to are computed from request dates and local calendars
+        # on the receiving Odoo instance; do not export source UTC values.
         ("display_name", "display_name"),
         ("duration_display", "duration_display"),
         ("has_mandatory_day", "has_mandatory_day"),

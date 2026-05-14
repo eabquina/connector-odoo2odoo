@@ -67,8 +67,9 @@ class HrLeaveImportMapper(Component):
         ("tz", "tz"),
         ("tz_mismatch", "tz_mismatch"),
         ("validation_type", "validation_type"),
-        ("date_from", "date_from"),
-        ("date_to", "date_to"),
+        # date_from/date_to are computed from the request dates and the target
+        # employee calendar. Importing the source UTC values can shift local
+        # request dates by one day when CE and EE recompute the leave.
     ]
     
     @mapping
