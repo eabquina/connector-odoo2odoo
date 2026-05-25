@@ -59,6 +59,49 @@ class HrOvertimeImporter(Component):
     _inherit = "odoo.importer"
     _inherits = "AbstractModel"
     _apply_on = ["odoo.hr.overtime"]
+
+    def _get_binding_odoo_id_changed(self, binding):
+        binding = super()._get_binding_odoo_id_changed(binding)
+        if binding or not self.odoo_record or not self.odoo_record.employee_id:
+            return binding
+
+        employee_binder = self.binder_for("odoo.hr.employee")
+        employee = employee_binder.to_internal(
+            self.odoo_record.employee_id.id, unwrap=True
+        )
+        if not employee:
+            return binding
+
+        domain = [
+            ("employee_id", "=", employee.id),
+            ("date_from", "=", self.odoo_record.date_from),
+            ("date_to", "=", self.odoo_record.date_to),
+        ]
+        if self.odoo_record.name:
+            domain.append(("name", "=", self.odoo_record.name))
+
+        overtime = self.env["hr.overtime"].search(domain, limit=2)
+        if len(overtime) != 1:
+            return binding
+
+        binding_model = self.env["odoo.hr.overtime"]
+        existing_binding = binding_model.search(
+            [
+                ("backend_id", "=", self.backend_record.id),
+                ("external_id", "=", self.external_id),
+            ],
+            limit=1,
+        )
+        if existing_binding:
+            return existing_binding
+
+        return binding_model.create(
+            {
+                "backend_id": self.backend_record.id,
+                "external_id": self.external_id,
+                "odoo_id": overtime.id,
+            }
+        )
     
     def _import_dependencies(self, force=False):
         """Import the dependencies for the record"""
