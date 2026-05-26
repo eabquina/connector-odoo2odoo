@@ -60,6 +60,48 @@ class HrOvertimeImporter(Component):
     _inherits = "AbstractModel"
     _apply_on = ["odoo.hr.overtime"]
 
+    def _existing_binding(self):
+        return self.env["odoo.hr.overtime"].search(
+            [("external_id", "=", self.external_id)],
+            limit=1,
+        )
+
+    def _unbound_overtime(self, domain):
+        overtime = self.env["hr.overtime"].search(domain, limit=3)
+        if len(overtime) == 1 and not overtime.bind_ids:
+            return overtime
+        return self.env["hr.overtime"]
+
+    def _matching_overtime(self, employee):
+        if not self.odoo_record.date_from or not self.odoo_record.date_to:
+            return self.env["hr.overtime"]
+
+        exact_domain = [
+            ("employee_id", "=", employee.id),
+            ("date_from", "=", self.odoo_record.date_from),
+            ("date_to", "=", self.odoo_record.date_to),
+        ]
+        if self.odoo_record.name:
+            exact_domain.append(("name", "=", self.odoo_record.name))
+
+        overtime = self._unbound_overtime(exact_domain)
+        if overtime:
+            return overtime
+
+        overlap_domain = [
+            ("employee_id", "=", employee.id),
+            ("date_from", "<", self.odoo_record.date_to),
+            ("date_to", ">", self.odoo_record.date_from),
+        ]
+        overtime = self._unbound_overtime(overlap_domain)
+        if overtime:
+            _logger.info(
+                "Binding overlapping existing overtime %s to external overtime %s",
+                overtime.id,
+                self.external_id,
+            )
+        return overtime
+
     def _get_binding_odoo_id_changed(self, binding):
         binding = super()._get_binding_odoo_id_changed(binding)
         if binding or not self.odoo_record or not self.odoo_record.employee_id:
@@ -72,30 +114,15 @@ class HrOvertimeImporter(Component):
         if not employee:
             return binding
 
-        domain = [
-            ("employee_id", "=", employee.id),
-            ("date_from", "=", self.odoo_record.date_from),
-            ("date_to", "=", self.odoo_record.date_to),
-        ]
-        if self.odoo_record.name:
-            domain.append(("name", "=", self.odoo_record.name))
-
-        overtime = self.env["hr.overtime"].search(domain, limit=2)
-        if len(overtime) != 1:
-            return binding
-
-        binding_model = self.env["odoo.hr.overtime"]
-        existing_binding = binding_model.search(
-            [
-                ("backend_id", "=", self.backend_record.id),
-                ("external_id", "=", self.external_id),
-            ],
-            limit=1,
-        )
+        existing_binding = self._existing_binding()
         if existing_binding:
             return existing_binding
 
-        return binding_model.create(
+        overtime = self._matching_overtime(employee)
+        if not overtime:
+            return binding
+
+        return self.env["odoo.hr.overtime"].create(
             {
                 "backend_id": self.backend_record.id,
                 "external_id": self.external_id,
