@@ -66,9 +66,9 @@ class HrOvertimeImporter(Component):
             limit=1,
         )
 
-    def _unbound_overtime(self, domain):
+    def _single_overtime(self, domain, allow_bound=False):
         overtime = self.env["hr.overtime"].search(domain, limit=3)
-        if len(overtime) == 1 and not overtime.bind_ids:
+        if len(overtime) == 1 and (allow_bound or not overtime.bind_ids):
             return overtime
         return self.env["hr.overtime"]
 
@@ -84,7 +84,16 @@ class HrOvertimeImporter(Component):
         if self.odoo_record.name:
             exact_domain.append(("name", "=", self.odoo_record.name))
 
-        overtime = self._unbound_overtime(exact_domain)
+        overtime = self._single_overtime(exact_domain, allow_bound=True)
+        if overtime:
+            return overtime
+
+        exact_domain = [
+            ("employee_id", "=", employee.id),
+            ("date_from", "=", self.odoo_record.date_from),
+            ("date_to", "=", self.odoo_record.date_to),
+        ]
+        overtime = self._single_overtime(exact_domain, allow_bound=True)
         if overtime:
             return overtime
 
@@ -93,7 +102,7 @@ class HrOvertimeImporter(Component):
             ("date_from", "<", self.odoo_record.date_to),
             ("date_to", ">", self.odoo_record.date_from),
         ]
-        overtime = self._unbound_overtime(overlap_domain)
+        overtime = self._single_overtime(overlap_domain)
         if overtime:
             _logger.info(
                 "Binding overlapping existing overtime %s to external overtime %s",
