@@ -44,11 +44,13 @@ class HrAttendanceLateImportMapper(Component):
         match_fields = ['employee_id', 'date',]
         filters = []
 
-        filters = ast.literal_eval(self.backend_record.external_domain_filter_hr_attendance)
+        filters = ast.literal_eval(
+            self.backend_record.external_domain_filter_hr_attendance_late
+        )
         for match_field in match_fields:
             if record[match_field]:
                 if match_field in ['date']:
-                    filters.append((match_field, "=", str(record[match_field].strftime("%Y-%m-%d %H:%M:%S")) ))
+                    filters.append((match_field, "=", str(record[match_field])))
                 if match_field in ['employee_id']:
                     filters.append((match_field, "=", record[match_field].id))
 
