@@ -17,13 +17,7 @@ class OdooProductAttributeValue(models.Model):
         comodel_name="product.attribute.value", string="Product Attribute Value", required=True, ondelete="cascade"
     )
     
-    _sql_constraints = [
-        (
-            "external_id",
-            "UNIQUE(external_id)",
-            "External ID (external_id) must be unique!",
-        ),
-    ]
+    _external_id = models.Constraint('UNIQUE(external_id)', 'External ID (external_id) must be unique!')
 
 
     bind_ids = fields.One2many(

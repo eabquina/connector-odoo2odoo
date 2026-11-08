@@ -28,13 +28,7 @@ class OdooSaleOrder(models.Model):
     backend_picking_count = fields.Integer()
     backend_date_order = fields.Datetime()
 
-    _sql_constraints = [
-        (
-            "external_id",
-            "UNIQUE(external_id)",
-            "External ID (external_id) must be unique!",
-        ),
-    ]
+    _external_id = models.Constraint('UNIQUE(external_id)', 'External ID (external_id) must be unique!')
 
     def _compute_import_state(self):
         for order_id in self:

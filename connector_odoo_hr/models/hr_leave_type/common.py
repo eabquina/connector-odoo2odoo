@@ -21,13 +21,7 @@ class OdooHrLeaveType(models.Model):
         comodel_name="hr.leave.type", string="HR Leave Type", required=True, ondelete="cascade"
     )
 
-    _sql_constraints = [
-        (
-            "external_id",
-            "UNIQUE(external_id)",
-            "External ID (external_id) must be unique!",
-        ),
-    ]
+    _external_id = models.Constraint('UNIQUE(external_id)', 'External ID (external_id) must be unique!')
 
     def resync(self):
         if self.backend_id.main_record == "odoo":

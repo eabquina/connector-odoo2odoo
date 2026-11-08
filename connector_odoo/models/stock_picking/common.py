@@ -25,13 +25,7 @@ class OdooStockPicking(models.Model):
 
     backend_state = fields.Char()
 
-    _sql_constraints = [
-        (
-            "external_id",
-            "UNIQUE(external_id)",
-            "External ID (external_id) must be unique!",
-        ),
-    ]
+    _external_id = models.Constraint('UNIQUE(external_id)', 'External ID (external_id) must be unique!')
 
     def _compute_import_state(self):
         for picking_id in self:

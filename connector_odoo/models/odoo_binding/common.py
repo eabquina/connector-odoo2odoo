@@ -26,13 +26,7 @@ class OdooBinding(models.AbstractModel):
     )
     external_id = fields.Integer(string="ID on Ext Odoo", default=-1)
 
-    _sql_constraints = [
-        (
-            "odoo_backend_odoo_uniq",
-            "unique(backend_id, odoo_id)",
-            "A binding already exists with the same backend for this object.",
-        )
-    ]
+    _odoo_backend_odoo_uniq = models.Constraint('unique(backend_id, odoo_id)', 'A binding already exists with the same backend for this object.')
 
     @api.constrains("backend_id", "external_id")
     def unique_backend_external_id(self):

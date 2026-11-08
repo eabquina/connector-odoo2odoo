@@ -21,13 +21,7 @@ class OdooResPartnerAddressReferences(models.Model):
         comodel_name="res.partner", string="Partner", required=True, ondelete="cascade"
     )
 
-    _sql_constraints = [
-        (
-            "external_id",
-            "UNIQUE(external_id)",
-            "External ID (external_id) must be unique!",
-        ),
-    ]
+    _external_id = models.Constraint('UNIQUE(external_id)', 'External ID (external_id) must be unique!')
 
 
     odoo_binding_partner_id = fields.Many2one("odoo.res.partner")

@@ -20,13 +20,7 @@ class OdooUser(models.Model):
         comodel_name="res.users", string="User", required=True, ondelete="cascade"
     )
 
-    _sql_constraints = [
-        (
-            "external_id",
-            "UNIQUE(external_id)",
-            "External ID (external_id) must be unique!",
-        ),
-    ]
+    _external_id = models.Constraint('UNIQUE(external_id)', 'External ID (external_id) must be unique!')
 
     def _compute_display_name(self):
         for rec in self:

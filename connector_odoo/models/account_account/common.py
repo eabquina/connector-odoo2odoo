@@ -17,13 +17,7 @@ class OdooAccountAccount(models.Model):
         comodel_name="account.account", string="Account", required=True, ondelete="cascade"
     )
     
-    _sql_constraints = [
-        (
-            "external_id",
-            "UNIQUE(external_id)",
-            "External ID (external_id) must be unique!",
-        ),
-    ]
+    _external_id = models.Constraint('UNIQUE(external_id)', 'External ID (external_id) must be unique!')
 
 
     def resync(self):

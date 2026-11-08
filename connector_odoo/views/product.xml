@@ -7,7 +7,7 @@
       <field name="inherit_id" ref="product.product_normal_form_view" />
       <field name="arch" type="xml">
         <xpath expr="//notebook/page[@name='connector']" position="attributes">
-          <attribute name="invisible" eval="0" />
+          <attribute name="invisible">0</attribute>
         </xpath>
         <xpath expr="//notebook/page[@name='connector']" position="inside">
             <group string="Odoo Binding">
@@ -23,13 +23,15 @@
       <field name="inherit_id" ref="product.product_normal_form_view" />
       <field name="arch" type="xml">
         <data>
-          <header position="inside">
+          <xpath expr="//sheet" position="before">
+            <header>
             <button
                         string="Get Remote Qty"
                         type="object"
                         name="get_remote_qty_available"
                     />
-          </header>
+            </header>
+          </xpath>
         </data>
       </field>
     </record>

@@ -19,13 +19,7 @@ class OdooProductUOM(models.Model):
         comodel_name="uom.uom", string="Product Unit of Measure", required=True, ondelete="cascade"
     )
 
-    _sql_constraints = [
-        (
-            "external_id",
-            "UNIQUE(external_id)",
-            "External ID (external_id) must be unique!",
-        ),
-    ]
+    _external_id = models.Constraint('UNIQUE(external_id)', 'External ID (external_id) must be unique!')
 
     """
     Product UOM are not fully managed with dependencies etc.

@@ -22,13 +22,7 @@ class OdooStockWarehouse(models.Model):
         comodel_name="stock.warehouse", string="Warehouse", required=True, ondelete="cascade"
     )
 
-    _sql_constraints = [
-        (
-            "external_id",
-            "UNIQUE(external_id)",
-            "External ID (external_id) must be unique!",
-        ),
-    ]
+    _external_id = models.Constraint('UNIQUE(external_id)', 'External ID (external_id) must be unique!')
 
     def resync(self):
         if self.backend_id.main_record == "odoo":

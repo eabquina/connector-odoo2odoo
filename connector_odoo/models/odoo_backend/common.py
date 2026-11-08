@@ -283,10 +283,15 @@ class OdooBackend(models.Model):
         )
         return lang
 
+    def _check_not_neutralized(self):
+        if self.env["ir.config_parameter"].sudo().get_param("database.is_neutralized"):
+            raise UserError(_("Odoo connectors are disabled in a neutralized database."))
+
     def get_connection(
         self,
     ):
         self.ensure_one()
+        self._check_not_neutralized()
         odoo_location = OdooLocation(
             hostname=self.hostname,
             login=self.login,
@@ -319,6 +324,7 @@ class OdooBackend(models.Model):
             #odoo.addons.component.models.collection.Collection
         """
         self.ensure_one()
+        self._check_not_neutralized()
         lang = self.get_default_language_code()
         odoo_location = OdooLocation(
             hostname=self.hostname,
